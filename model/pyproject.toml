@@ -2,6 +2,8 @@
 name = "fishcareyolo"
 version = "0.1.0"
 description = "A YOLO Based Application for Real Time Fish Disease Detection"
-readme = "../README.md"
+readme = "readme.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "roboflow>=1.2.11",
+]
