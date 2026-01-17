@@ -17,11 +17,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const nativeWindColorScheme = useNativeWindColorScheme()
     const [isLoaded, setIsLoaded] = useState(false)
 
-    useEffect(() => {
-        loadTheme()
-    }, [])
-
-    const loadTheme = async () => {
+    const loadTheme = React.useCallback(async () => {
         try {
             const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY)
             if (saved === "light" || saved === "dark") {
@@ -32,7 +28,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         } finally {
             setIsLoaded(true)
         }
-    }
+    }, [nativeWindColorScheme])
+
+    useEffect(() => {
+        loadTheme()
+    }, [loadTheme])
 
     const handleToggleColorScheme = async () => {
         const newScheme =

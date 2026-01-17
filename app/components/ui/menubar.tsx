@@ -1,7 +1,3 @@
-import { Icon } from "@/components/ui/icon"
-import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view"
-import { TextClassContext } from "@/components/ui/text"
-import { cn } from "@/lib/utils"
 import * as MenubarPrimitive from "@rn-primitives/menubar"
 import { Portal } from "@rn-primitives/portal"
 import {
@@ -23,6 +19,10 @@ import {
 } from "react-native"
 import { FadeIn } from "react-native-reanimated"
 import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens"
+import { Icon } from "@/components/ui/icon"
+import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view"
+import { TextClassContext } from "@/components/ui/text"
+import { cn } from "@/lib/utils"
 
 const MenubarMenu = MenubarPrimitive.Menu
 
@@ -140,7 +140,7 @@ function MenubarSubTrigger({
                 )}
                 {...props}
             >
-                <>{children}</>
+                {children}
                 <Icon
                     as={icon}
                     className={cn(
@@ -297,7 +297,7 @@ function MenubarCheckboxItem({
                         />
                     </MenubarPrimitive.ItemIndicator>
                 </View>
-                <>{children}</>
+                {children}
             </MenubarPrimitive.CheckboxItem>
         </TextClassContext.Provider>
     )
@@ -329,7 +329,7 @@ function MenubarRadioItem({
                         <View className="bg-foreground h-2 w-2 rounded-full" />
                     </MenubarPrimitive.ItemIndicator>
                 </View>
-                <>{children}</>
+                {children}
             </MenubarPrimitive.RadioItem>
         </TextClassContext.Provider>
     )

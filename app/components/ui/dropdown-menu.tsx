@@ -1,7 +1,3 @@
-import { Icon } from "@/components/ui/icon"
-import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view"
-import { TextClassContext } from "@/components/ui/text"
-import { cn } from "@/lib/utils"
 import * as DropdownMenuPrimitive from "@rn-primitives/dropdown-menu"
 import {
     Check,
@@ -21,6 +17,10 @@ import {
 } from "react-native"
 import { FadeIn } from "react-native-reanimated"
 import { FullWindowOverlay as RNFullWindowOverlay } from "react-native-screens"
+import { Icon } from "@/components/ui/icon"
+import { NativeOnlyAnimatedView } from "@/components/ui/native-only-animated-view"
+import { TextClassContext } from "@/components/ui/text"
+import { cn } from "@/lib/utils"
 
 const DropdownMenu = DropdownMenuPrimitive.Root
 
@@ -67,7 +67,7 @@ function DropdownMenuSubTrigger({
                 )}
                 {...props}
             >
-                <>{children}</>
+                {children}
                 <Icon
                     as={icon}
                     className={cn(
@@ -230,7 +230,7 @@ function DropdownMenuCheckboxItem({
                         />
                     </DropdownMenuPrimitive.ItemIndicator>
                 </View>
-                <>{children}</>
+                {children}
             </DropdownMenuPrimitive.CheckboxItem>
         </TextClassContext.Provider>
     )
@@ -262,7 +262,7 @@ function DropdownMenuRadioItem({
                         <View className="bg-foreground h-2 w-2 rounded-full" />
                     </DropdownMenuPrimitive.ItemIndicator>
                 </View>
-                <>{children}</>
+                {children}
             </DropdownMenuPrimitive.RadioItem>
         </TextClassContext.Provider>
     )
