@@ -47,15 +47,16 @@
     - **Property 1: Detection session round-trip**
     - **Validates: Requirements 4.4, 4.5**
 
-- [ ] 3. Implement storage service
-  - [ ] 3.1 Create StorageService with AsyncStorage
+- [x] 3. Implement storage service
+  - [x] 3.1 Create StorageService with AsyncStorage
     - Implement saveSession, getSessions, getSession, deleteSession, clearAll
     - Use serialization functions from 2.4
     - _Requirements: 5.1_
-  - [ ] 3.2 Implement history sorting by timestamp (newest first)
+    - Tests: app/tests/models/sessions.test.ts
+  - [x] 3.2 Implement history sorting by timestamp (newest first)
     - Sort sessions in descending order when retrieving
     - _Requirements: 5.4_
-  - [ ] 3.3 Write property test for history sorting
+  - [x] 3.3 Write property test for history sorting
     - **Property 4: History sorting by timestamp**
     - **Validates: Requirements 5.4**
 
