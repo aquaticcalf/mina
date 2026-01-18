@@ -36,7 +36,7 @@
     - Define BoundingBox, Detection, DetectionSession, DiseaseInfo types
     - Create validation functions for each type
     - _Requirements: 4.2_
-  - [ ] 2.3 Write property test for detection structure validation
+  - [x] 2.3 Write property test for detection structure validation
     - **Property 5: Detection result structure**
     - **Validates: Requirements 4.2**
   - [ ] 2.4 Create JSON serialization and parsing functions for DetectionSession
