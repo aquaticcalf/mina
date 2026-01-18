@@ -94,7 +94,7 @@ pytest tests/ -v
 
 ### App tests (planned)
 
-Expo app tests will use `fast-check` for correctness properties:
+Expo app tests use `bun:test` for correctness properties:
 - Serialization round-trip
 - Detection sorting/filtering
 

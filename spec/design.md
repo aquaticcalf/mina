@@ -353,7 +353,7 @@ Sessions are stored as JSON:
 
 ### Property-Based Testing
 
-**TypeScript (Expo App)**: We use **fast-check** for property-based testing. Each correctness property maps to a property-based test that generates random inputs and verifies the property holds.
+**TypeScript (Expo App)**: We use **bun:test** for property-based testing. Each correctness property maps to a property-based test that generates random inputs and verifies the property holds.
 
 **Python (Training Pipeline)**: We use **hypothesis** for property-based testing of model export and inference equivalence.
 

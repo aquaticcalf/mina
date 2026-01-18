@@ -30,7 +30,7 @@
   - [ ] 2.1 Install required dependencies
     - Add expo-camera, expo-image-picker, expo-haptics for capture
     - Add react-native-fast-tflite for on-device inference
-    - Add fast-check and @testing-library/react-native for testing
+    - Add bun:test for testing
     - _Requirements: 1.1, 2.1, 2.2_
   - [x] 2.2 Create data model types and validation functions
     - Define BoundingBox, Detection, DetectionSession, DiseaseInfo types
