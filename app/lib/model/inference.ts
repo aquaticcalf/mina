@@ -9,7 +9,7 @@ import { DISEASE_CLASSES } from "@/lib/model/types"
 import type { BoundingBox, Detection, DiseaseClass } from "@/lib/model/types"
 
 const IMAGE_SIZE = 640
-const CONFIDENCE_THRESHOLD = 0.25
+const CONFIDENCE_THRESHOLD = 0.3
 const IOU_THRESHOLD = 0.45
 
 interface RawDetection {
