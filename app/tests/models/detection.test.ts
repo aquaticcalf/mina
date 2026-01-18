@@ -19,19 +19,34 @@ import {
 describe("**Feature: fish-disease-detection, Property 5: Detection result structure**", () => {
     describe("BoundingBox validation", () => {
         it("should validate valid bounding boxes", () => {
-            const validBbox: BoundingBox = { x: 0.25, y: 0.3, width: 0.4, height: 0.35 }
+            const validBbox: BoundingBox = {
+                x: 0.25,
+                y: 0.3,
+                width: 0.4,
+                height: 0.35,
+            }
             expect(isValidBoundingBox(validBbox)).toBe(true)
             expect(validateBoundingBox(validBbox)).toEqual([])
         })
 
         it("should reject bounding boxes with out-of-range values", () => {
-            const invalidBbox: BoundingBox = { x: 1.5, y: 0.3, width: 0.4, height: 0.35 }
+            const invalidBbox: BoundingBox = {
+                x: 1.5,
+                y: 0.3,
+                width: 0.4,
+                height: 0.35,
+            }
             expect(isValidBoundingBox(invalidBbox)).toBe(false)
             expect(validateBoundingBox(invalidBbox).length).toBeGreaterThan(0)
         })
 
         it("should reject bounding boxes that exceed image bounds", () => {
-            const invalidBbox: BoundingBox = { x: 0.8, y: 0.3, width: 0.4, height: 0.35 }
+            const invalidBbox: BoundingBox = {
+                x: 0.8,
+                y: 0.3,
+                width: 0.4,
+                height: 0.35,
+            }
             expect(isValidBoundingBox(invalidBbox)).toBe(false)
             const errors = validateBoundingBox(invalidBbox)
             expect(errors.some((e) => e.includes("exceeds"))).toBe(true)
@@ -77,7 +92,7 @@ describe("**Feature: fish-disease-detection, Property 5: Detection result struct
                 id: "det_001",
                 diseaseClass: "bacterial_infection",
                 confidence: 0.87,
-                boundingBox: { x: 0.25, y: 0.30, width: 0.40, height: 0.35 },
+                boundingBox: { x: 0.25, y: 0.3, width: 0.4, height: 0.35 },
             }
             expect(validateDetection(validDetection)).toEqual([])
         })
@@ -104,7 +119,12 @@ describe("**Feature: fish-disease-detection, Property 5: Detection result struct
                         id: "det_001",
                         diseaseClass: "bacterial_infection" as DiseaseClass,
                         confidence: 0.87,
-                        boundingBox: { x: 0.25, y: 0.30, width: 0.40, height: 0.35 },
+                        boundingBox: {
+                            x: 0.25,
+                            y: 0.3,
+                            width: 0.4,
+                            height: 0.35,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -163,13 +183,23 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_001",
                         diseaseClass: "bacterial_infection",
                         confidence: 0.87,
-                        boundingBox: { x: 0.25, y: 0.30, width: 0.40, height: 0.35 },
+                        boundingBox: {
+                            x: 0.25,
+                            y: 0.3,
+                            width: 0.4,
+                            height: 0.35,
+                        },
                     },
                     {
                         id: "det_002",
                         diseaseClass: "healthy",
                         confidence: 0.95,
-                        boundingBox: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 },
+                        boundingBox: {
+                            x: 0.1,
+                            y: 0.1,
+                            width: 0.2,
+                            height: 0.2,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -203,7 +233,12 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_single",
                         diseaseClass: "parasite",
                         confidence: 0.72,
-                        boundingBox: { x: 0.5, y: 0.5, width: 0.3, height: 0.3 },
+                        boundingBox: {
+                            x: 0.5,
+                            y: 0.5,
+                            width: 0.3,
+                            height: 0.3,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -225,7 +260,12 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_001",
                         diseaseClass: "fungal_infection",
                         confidence: 0.65,
-                        boundingBox: { x: 0.2, y: 0.25, width: 0.35, height: 0.4 },
+                        boundingBox: {
+                            x: 0.2,
+                            y: 0.25,
+                            width: 0.35,
+                            height: 0.4,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -238,9 +278,15 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
             expect(parsed?.timestamp).toBe(original.timestamp)
             expect(parsed?.detections.length).toBe(original.detections.length)
             expect(parsed?.detections[0].id).toBe(original.detections[0].id)
-            expect(parsed?.detections[0].diseaseClass).toBe(original.detections[0].diseaseClass)
-            expect(parsed?.detections[0].confidence).toBe(original.detections[0].confidence)
-            expect(parsed?.detections[0].boundingBox).toEqual(original.detections[0].boundingBox)
+            expect(parsed?.detections[0].diseaseClass).toBe(
+                original.detections[0].diseaseClass,
+            )
+            expect(parsed?.detections[0].confidence).toBe(
+                original.detections[0].confidence,
+            )
+            expect(parsed?.detections[0].boundingBox).toEqual(
+                original.detections[0].boundingBox,
+            )
         })
 
         it("should return null for malformed JSON", () => {
@@ -253,7 +299,11 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
             expect(parseSession('{"id": "test"}')).toBeNull()
             expect(parseSession('{"imageUri": "test.jpg"}')).toBeNull()
             expect(parseSession('{"timestamp": 123}')).toBeNull()
-            expect(parseSession('{"id": "", "imageUri": "", "detections": [], "timestamp": 0}')).toBeNull()
+            expect(
+                parseSession(
+                    '{"id": "", "imageUri": "", "detections": [], "timestamp": 0}',
+                ),
+            ).toBeNull()
         })
 
         it("should return null for JSON with invalid detection data", () => {
@@ -265,7 +315,12 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_001",
                         diseaseClass: "invalid_class",
                         confidence: 1.5,
-                        boundingBox: { x: 1.5, y: 0.3, width: 0.4, height: 0.35 },
+                        boundingBox: {
+                            x: 1.5,
+                            y: 0.3,
+                            width: 0.4,
+                            height: 0.35,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -284,13 +339,23 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_valid",
                         diseaseClass: "white_tail",
                         confidence: 0.8,
-                        boundingBox: { x: 0.1, y: 0.1, width: 0.2, height: 0.2 },
+                        boundingBox: {
+                            x: 0.1,
+                            y: 0.1,
+                            width: 0.2,
+                            height: 0.2,
+                        },
                     },
                     {
                         id: "det_invalid",
                         diseaseClass: "not_a_disease",
                         confidence: 0.9,
-                        boundingBox: { x: 0.5, y: 0.5, width: 0.1, height: 0.1 },
+                        boundingBox: {
+                            x: 0.5,
+                            y: 0.5,
+                            width: 0.1,
+                            height: 0.1,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -312,19 +377,34 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_1",
                         diseaseClass: "bacterial_infection",
                         confidence: 0.87,
-                        boundingBox: { x: 0.25, y: 0.30, width: 0.40, height: 0.35 },
+                        boundingBox: {
+                            x: 0.25,
+                            y: 0.3,
+                            width: 0.4,
+                            height: 0.35,
+                        },
                     },
                     {
                         id: "det_2",
                         diseaseClass: "fungal_infection",
                         confidence: 0.72,
-                        boundingBox: { x: 0.6, y: 0.7, width: 0.25, height: 0.2 },
+                        boundingBox: {
+                            x: 0.6,
+                            y: 0.7,
+                            width: 0.25,
+                            height: 0.2,
+                        },
                     },
                     {
                         id: "det_3",
                         diseaseClass: "healthy",
                         confidence: 0.95,
-                        boundingBox: { x: 0.1, y: 0.1, width: 0.15, height: 0.15 },
+                        boundingBox: {
+                            x: 0.1,
+                            y: 0.1,
+                            width: 0.15,
+                            height: 0.15,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,
@@ -338,12 +418,24 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
             expect(parsed?.detections).toHaveLength(original.detections.length)
             for (let i = 0; i < original.detections.length; i++) {
                 expect(parsed?.detections[i].id).toBe(original.detections[i].id)
-                expect(parsed?.detections[i].diseaseClass).toBe(original.detections[i].diseaseClass)
-                expect(parsed?.detections[i].confidence).toBe(original.detections[i].confidence)
-                expect(parsed?.detections[i].boundingBox.x).toBe(original.detections[i].boundingBox.x)
-                expect(parsed?.detections[i].boundingBox.y).toBe(original.detections[i].boundingBox.y)
-                expect(parsed?.detections[i].boundingBox.width).toBe(original.detections[i].boundingBox.width)
-                expect(parsed?.detections[i].boundingBox.height).toBe(original.detections[i].boundingBox.height)
+                expect(parsed?.detections[i].diseaseClass).toBe(
+                    original.detections[i].diseaseClass,
+                )
+                expect(parsed?.detections[i].confidence).toBe(
+                    original.detections[i].confidence,
+                )
+                expect(parsed?.detections[i].boundingBox.x).toBe(
+                    original.detections[i].boundingBox.x,
+                )
+                expect(parsed?.detections[i].boundingBox.y).toBe(
+                    original.detections[i].boundingBox.y,
+                )
+                expect(parsed?.detections[i].boundingBox.width).toBe(
+                    original.detections[i].boundingBox.width,
+                )
+                expect(parsed?.detections[i].boundingBox.height).toBe(
+                    original.detections[i].boundingBox.height,
+                )
             }
         })
 
@@ -356,7 +448,12 @@ describe("**Feature: fish-disease-detection, Property 1: Detection session round
                         id: "det_特殊",
                         diseaseClass: "parasite",
                         confidence: 0.5,
-                        boundingBox: { x: 0.1, y: 0.1, width: 0.8, height: 0.8 },
+                        boundingBox: {
+                            x: 0.1,
+                            y: 0.1,
+                            width: 0.8,
+                            height: 0.8,
+                        },
                     },
                 ],
                 timestamp: 1732550400000,

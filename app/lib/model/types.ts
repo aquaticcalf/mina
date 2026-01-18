@@ -136,8 +136,10 @@ export function isValidConfidence(value: number): boolean {
 
 export function validateBoundingBox(bbox: BoundingBox): string[] {
     const errors: string[] = []
-    if (!(bbox.x >= 0 && bbox.x <= 1)) errors.push(`BBox x out of range: ${bbox.x}`)
-    if (!(bbox.y >= 0 && bbox.y <= 1)) errors.push(`BBox y out of range: ${bbox.y}`)
+    if (!(bbox.x >= 0 && bbox.x <= 1))
+        errors.push(`BBox x out of range: ${bbox.x}`)
+    if (!(bbox.y >= 0 && bbox.y <= 1))
+        errors.push(`BBox y out of range: ${bbox.y}`)
     if (!(bbox.width >= 0 && bbox.width <= 1))
         errors.push(`BBox width out of range: ${bbox.width}`)
     if (!(bbox.height >= 0 && bbox.height <= 1))
@@ -145,7 +147,9 @@ export function validateBoundingBox(bbox: BoundingBox): string[] {
     if (bbox.x + bbox.width > 1.0 + 1e-6)
         errors.push(`BBox exceeds right edge: x=${bbox.x}, width=${bbox.width}`)
     if (bbox.y + bbox.height > 1.0 + 1e-6)
-        errors.push(`BBox exceeds bottom edge: y=${bbox.y}, height=${bbox.height}`)
+        errors.push(
+            `BBox exceeds bottom edge: y=${bbox.y}, height=${bbox.height}`,
+        )
     return errors
 }
 
@@ -163,7 +167,8 @@ export function validateDetectionSession(session: DetectionSession): string[] {
     const errors: string[] = []
     if (!session.id) errors.push("Session missing id")
     if (!session.imageUri) errors.push("Session missing imageUri")
-    if (!Array.isArray(session.detections)) errors.push("Session missing detections array")
+    if (!Array.isArray(session.detections))
+        errors.push("Session missing detections array")
     if (typeof session.timestamp !== "number" || session.timestamp <= 0)
         errors.push(`Invalid timestamp: ${session.timestamp}`)
     for (const detection of session.detections) {
@@ -246,7 +251,10 @@ export function parseSession(json: string): DetectionSession | null {
             ) {
                 continue
             }
-            if (!isValidDiseaseClass(det.diseaseClass) || !isValidConfidence(det.confidence)) {
+            if (
+                !isValidDiseaseClass(det.diseaseClass) ||
+                !isValidConfidence(det.confidence)
+            ) {
                 continue
             }
             const bbox = det.boundingBox
