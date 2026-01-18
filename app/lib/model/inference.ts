@@ -125,7 +125,7 @@ export function parseYolov8Output(
             const confidence = objectness * classProb
 
             if (confidence >= CONFIDENCE_THRESHOLD) {
-                const bbox = xywhToBoundingBox(cx, cy, w, h)
+                const bbox = cxcywhToBoundingBox(cx, cy, w, h)
 
                 detections.push({
                     classIndex: c,
