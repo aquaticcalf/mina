@@ -6,8 +6,6 @@
 
 MINA is a React Native (Expo) app that uses a YOLOv8 model (exported to TFLite) to detect common fish diseases from a camera capture or gallery image. The goal is **instant, private, offline** detection with clear results + recommended next actions.
 
-This repo is currently in the **initiation phase**: the overall plan is defined, but most core features are not implemented yet.
-
 ## What It Does
 
 - ✓ YOLOv8n model trained to detect 5 classes: bacterial_infection, fungal_infection, healthy, parasite, white_tail
