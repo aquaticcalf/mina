@@ -6,13 +6,33 @@
 
 // Types
 export type {
+    BoundingBox,
+    Detection,
+    DetectionSession,
+    DiseaseClass,
+    DiseaseInfo,
     GitHubAsset,
     GitHubRelease,
     ModelChannel,
     ModelMetadata,
     ModelState,
+    Severity,
     UpdateCheckResult,
 } from "@/lib/model/types"
+
+// Validation functions
+export {
+    isValidBoundingBox,
+    isValidConfidence,
+    isValidDiseaseClass,
+    validateBoundingBox,
+    validateDetection,
+    validateDetectionSession,
+    validateDiseaseInfo,
+} from "@/lib/model/types"
+
+// Disease classes constant
+export { DISEASE_CLASSES } from "@/lib/model/types"
 
 // Manager functions
 export {
