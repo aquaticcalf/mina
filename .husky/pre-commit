@@ -1,0 +1,7 @@
+cd app
+bun fix
+cd ../model
+uvx ruff check
+uvx ruff format
+cd ..
+git add .
