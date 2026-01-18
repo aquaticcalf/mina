@@ -51,18 +51,9 @@ export {
 // Storage utilities
 export {
     clearAll,
-    clearModelMetadata,
-    deleteModelFile,
     deleteSession,
-    ensureModelDirectory,
-    getModelDirectory,
-    getModelFileSize,
-    getModelPath,
     getSession,
     getSessions,
-    loadModelMetadata,
-    modelFileExists,
-    saveModelMetadata,
     saveSession,
 } from "@/lib/model/sessions"
 export {
@@ -76,6 +67,16 @@ export {
     modelFileExists,
     saveModelMetadata,
 } from "@/lib/model/storage"
+
+// Inference functions
+export {
+    applyNMS,
+    convertToDetections,
+    filterByConfidence,
+    parseYolov8Output,
+    sortByConfidence,
+    type InferenceResult,
+} from "@/lib/model/inference"
 
 // React context
 export { ModelProvider, useModel } from "@/lib/model/context"

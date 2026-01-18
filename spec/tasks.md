@@ -61,22 +61,31 @@
     - **Validates: Requirements 5.4**
 
 - [ ] 4. Implement inference service
-  - [ ] 4.1 Create InferenceService with react-native-fast-tflite
+  - [x] 4.1 Create InferenceService with react-native-fast-tflite
     - Implement loadModel, isModelLoaded, runInference, dispose
     - Bundle TFLite model from step 1.4 as asset
     - _Requirements: 2.1, 2.2, 4.1_
-  - [ ] 4.2 Implement confidence filtering (threshold 0.3)
+  - [x] 4.2 Implement confidence filtering (threshold 0.3)
     - Filter out low-confidence detections before returning results
     - _Requirements: 4.3_
-  - [ ] 4.3 Write property test for confidence filtering
+  - [x] 4.3 Write property test for confidence filtering
     - **Property 2: Confidence filtering**
     - **Validates: Requirements 4.3**
-  - [ ] 4.4 Implement detection sorting by confidence (descending)
+  - [x] 4.4 Implement detection sorting by confidence (descending)
     - Sort detections by confidence before returning
     - _Requirements: 3.3_
-  - [ ] 4.5 Write property test for detection sorting
+  - [x] 4.5 Write property test for detection sorting
     - **Property 3: Detection sorting by confidence**
     - **Validates: Requirements 3.3**
+  - [x] 4.6 Implement NMS (Non-Maximum Suppression) algorithm
+    - Since TFLite export has nms=False, implement NMS in app after inference
+    - Confidence threshold: 0.25
+    - IoU threshold: 0.45
+    - Map class indices to DISEASE_CLASSES labels
+    - _Requirements: 2.1, 2.2_
+  - [x] 4.7 Write property test for NMS
+    - **Property 9: NMS deduplication**
+    - **Validates: Requirements 2.1, 2.2_
 
 - [ ] 5. Checkpoint
   - Ensure all tests pass, ask the user if questions arise.

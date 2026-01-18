@@ -4,6 +4,7 @@ import {
     type Detection,
     type DetectionSession,
     type DiseaseClass,
+    type DiseaseInfo,
     DISEASE_CLASSES,
     isValidBoundingBox,
     isValidConfidence,
@@ -98,12 +99,12 @@ describe("**Feature: fish-disease-detection, Property 5: Detection result struct
         })
 
         it("should detect multiple validation errors", () => {
-            const invalidDetection: Detection = {
+            const invalidDetection = {
                 id: "det_001",
-                diseaseClass: "invalid_class",
+                diseaseClass: "invalid_class" as DiseaseClass,
                 confidence: 1.5,
                 boundingBox: { x: 1.5, y: 0.3, width: 0.4, height: 0.35 },
-            }
+            } as Detection
             const errors = validateDetection(invalidDetection)
             expect(errors.length).toBeGreaterThanOrEqual(3)
         })
@@ -165,7 +166,7 @@ describe("**Feature: fish-disease-detection, Property 5: Detection result struct
                 symptoms: [],
                 treatments: [],
                 severity: "critical" as const,
-            }
+            } as unknown as DiseaseInfo
             const errors = validateDiseaseInfo(invalidInfo)
             expect(errors.length).toBeGreaterThanOrEqual(5)
         })
