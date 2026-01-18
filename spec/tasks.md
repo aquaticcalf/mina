@@ -26,8 +26,8 @@
     - Verify output format matches expected Detection structure
     - _Requirements: 4.2_
 
-- [ ] 2. Set up Expo project foundation
-  - [ ] 2.1 Install required dependencies
+- [x] 2. Set up Expo project foundation
+  - [x] 2.1 Install required dependencies
     - Add expo-camera, expo-image-picker, expo-haptics for capture
     - Add react-native-fast-tflite for on-device inference
     - Add bun:test for testing
