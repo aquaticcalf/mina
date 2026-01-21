@@ -23,6 +23,7 @@ mina-export = "cli.export:main"
 mina-evaluate = "cli.evaluate:main"
 mina-infer = "cli.infer:main"
 mina-download = "cli.download:main"
+mina-tune = "cli.tune:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

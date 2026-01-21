@@ -26,6 +26,10 @@ DEFAULT_EPOCHS: int = 100
 DEFAULT_BATCH_SIZE: int = 16
 DEFAULT_PATIENCE: int = 20
 
+# Tuning parameters
+DEFAULT_TUNE_EPOCHS: int = 30
+DEFAULT_TUNE_ITERATIONS: int = 300
+
 # Model paths
 MODEL_DIR: Path = Path(__file__).parent.parent.parent
 RUNS_DIR: Path = MODEL_DIR / "runs" / "detect"
