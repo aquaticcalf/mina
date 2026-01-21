@@ -1,11 +1,12 @@
-import { CameraView, useCameraPermissions, FlashMode } from "expo-camera"
-import { LinearGradient } from "expo-linear-gradient"
-import { useEffect, useRef, useState } from "react"
-import { Text, View, TouchableOpacity, Alert, Image } from "react-native"
 import { MaterialIcons } from "@expo/vector-icons"
-import { Wheat } from "lucide-react-native"
-import * as MediaLibrary from "expo-media-library"
+import { CameraView, FlashMode, useCameraPermissions } from "expo-camera"
 import * as ImagePicker from "expo-image-picker"
+import { LinearGradient } from "expo-linear-gradient"
+import * as MediaLibrary from "expo-media-library"
+import { Wheat } from "lucide-react-native"
+import { useEffect, useRef, useState } from "react"
+import { Alert, Image, Text, TouchableOpacity, View } from "react-native"
+import { useCamera } from "@/lib/camera"
 
 type CameraType = "front" | "back"
 
@@ -14,13 +15,21 @@ export default function CameraScreen() {
     const [permission, requestPermission] = useCameraPermissions()
     const [mediaPermission, requestMediaPermission] =
         MediaLibrary.usePermissions()
-    const [cameraFacing, setCameraFacing] = useState<CameraType>("back")
-    const [flashMode, setFlashMode] = useState<FlashMode>("off")
-    const [torchEnabled, setTorchEnabled] = useState(false)
+    const {
+        cameraFacing,
+        flashMode,
+        torchEnabled,
+        setCameraFacing,
+        setFlashMode,
+        setTorchEnabled,
+    } = useCamera()
     const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null)
+
     useEffect(() => {
-        if (!permission) requestPermission()
-    }, [permission])
+        if (!permission?.granted) {
+            requestPermission()
+        }
+    }, [permission, requestPermission])
 
     const takePicture = async () => {
         if (!cameraRef.current) return
@@ -151,11 +160,13 @@ export default function CameraScreen() {
                     <TouchableOpacity
                         className="w-12 h-12 rounded-full bg-black/40 items-center justify-center"
                         onPress={() => {
-                            setFlashMode((current) => {
-                                if (current === "off") return "on"
-                                if (current === "on") return "auto"
-                                return "off"
-                            })
+                            const next =
+                                flashMode === "off"
+                                    ? "on"
+                                    : flashMode === "on"
+                                      ? "auto"
+                                      : "off"
+                            setFlashMode(next)
                         }}
                     >
                         <MaterialIcons
@@ -173,7 +184,7 @@ export default function CameraScreen() {
                     <TouchableOpacity
                         className="w-12 h-12 rounded-full bg-black/40 items-center justify-center"
                         onPress={() => {
-                            setTorchEnabled((current) => !current)
+                            setTorchEnabled(!torchEnabled)
                         }}
                     >
                         <MaterialIcons
@@ -189,8 +200,8 @@ export default function CameraScreen() {
                     <TouchableOpacity
                         className="w-12 h-12 rounded-full bg-black/40 items-center justify-center"
                         onPress={() => {
-                            setCameraFacing((current) =>
-                                current === "back" ? "front" : "back",
+                            setCameraFacing(
+                                cameraFacing === "back" ? "front" : "back",
                             )
                         }}
                     >

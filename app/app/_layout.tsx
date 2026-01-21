@@ -4,6 +4,7 @@ import { ThemeProvider as NavThemeProvider } from "@react-navigation/native"
 import { PortalHost } from "@rn-primitives/portal"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
+import { CameraProvider } from "@/lib/camera"
 import { ModelProvider } from "@/lib/model"
 import { NAV_THEME, ThemeProvider, useTheme } from "@/lib/theme"
 
@@ -25,7 +26,9 @@ export default function RootLayout() {
     return (
         <ThemeProvider>
             <ModelProvider>
-                <RootLayoutContent />
+                <CameraProvider>
+                    <RootLayoutContent />
+                </CameraProvider>
             </ModelProvider>
         </ThemeProvider>
     )
