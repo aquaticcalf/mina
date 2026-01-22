@@ -45,6 +45,12 @@ def main():
         default=None,
         help="Device to train on: '0' for GPU, 'cpu' for CPU (default: auto-detect)",
     )
+    parser.add_argument(
+        "--hyp",
+        type=str,
+        default=None,
+        help="Path to hyperparameters YAML file (e.g., runs/detect/tune/best_hyperparameters.yaml)",
+    )
 
     args = parser.parse_args()
 
@@ -54,6 +60,7 @@ def main():
         imgsz=args.imgsz,
         name=args.name,
         device=args.device,
+        hyp=args.hyp,
     )
 
 

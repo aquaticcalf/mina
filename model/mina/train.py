@@ -71,6 +71,7 @@ def train(
     data_dir: Path | None = None,
     patience: int = DEFAULT_PATIENCE,
     device: str | None = None,
+    hyp: str | None = None,
 ) -> Path:
     """
     Train YOLOv8n model on fish disease dataset.
@@ -84,6 +85,9 @@ def train(
         data_dir: Optional data directory
         patience: Early stopping patience
         device: Device to train on ('0' for GPU, 'cpu' for CPU, None for auto-detect)
+        hyp: Path to hyperparameters YAML file (e.g., from tuning). If provided,
+             uses these hyperparameters via Ultralytics cfg= parameter.
+             If None, uses hardcoded defaults.
 
     Returns:
         Path to the best model weights
@@ -99,32 +103,47 @@ def train(
     # Load YOLOv8 nano model (optimized for mobile)
     model = YOLO(pretrained)
 
-    # Train on fish disease data
-    results = model.train(
-        data=str(data_yaml),
-        epochs=epochs,
-        imgsz=imgsz,
-        batch=batch,
-        name=name,
-        # Save best model based on validation mAP
-        save=True,
-        save_period=-1,  # Only save best and last
-        # Training optimizations
-        patience=patience,
-        workers=4,
-        device=device,
-        # Augmentation settings for better generalization
-        hsv_h=0.015,
-        hsv_s=0.7,
-        hsv_v=0.4,
-        degrees=10.0,
-        translate=0.1,
-        scale=0.5,
-        flipud=0.5,
-        fliplr=0.5,
-        mosaic=1.0,
-        mixup=0.1,
-    )
+    # Base training arguments (always used)
+    base_args = {
+        "data": str(data_yaml),
+        "epochs": epochs,
+        "imgsz": imgsz,
+        "batch": batch,
+        "name": name,
+        "save": True,
+        "save_period": -1,  # Only save best and last
+        "patience": patience,
+        "workers": 4,
+        "device": device,
+    }
+
+    # Train with tuned hyperparameters or hardcoded defaults
+    if hyp is not None:
+        hyp_path = Path(hyp)
+        if not hyp_path.exists():
+            raise FileNotFoundError(
+                f"Hyperparameters file not found: {hyp_path}\n"
+                "Run tuning first: uv run mina-tune"
+            )
+        print(f"Using tuned hyperparameters from: {hyp_path}")
+        # Use Ultralytics cfg= parameter for safe YAML loading with validation
+        results = model.train(cfg=str(hyp_path), **base_args)
+    else:
+        print("Using hardcoded default hyperparameters")
+        # Augmentation settings for better generalization (fallback defaults)
+        results = model.train(
+            **base_args,
+            hsv_h=0.015,
+            hsv_s=0.7,
+            hsv_v=0.4,
+            degrees=10.0,
+            translate=0.1,
+            scale=0.5,
+            flipud=0.5,
+            fliplr=0.5,
+            mosaic=1.0,
+            mixup=0.1,
+        )
 
     # Get path to best weights
     best_weights = Path(results.save_dir) / "weights" / "best.pt"
