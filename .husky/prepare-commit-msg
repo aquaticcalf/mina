@@ -1,1 +1,7 @@
-exec < /dev/tty && bun commit --hook
+if [ -t 0 ]; then
+    exec < /dev/tty && bun commit --hook
+elif [ "$COMMIT_AGENT" != "1" ]; then
+    echo "error : interactive commit requires TTY, use 'bun commit-agent' instead."
+    echo "instructions on how to use it are given in the AGENTS.md file"
+    exit 1
+fi

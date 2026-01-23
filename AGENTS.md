@@ -34,3 +34,44 @@ This repo is driven by the spec docs in `spec/`. When asked to do any task from 
 
 - If the user says: “do task `X.Y`”, use `spec/tasks.md` as the execution plan, and use `spec/requirements.md` + `spec/design.md` as constraints and acceptance criteria.
 - If the user request conflicts with the spec docs, pause and ask for clarification before proceeding.
+
+## Committing Changes
+
+This repo uses husky with a commitizen hook that requires TTY interaction. Since coding agents don't have TTY access, use the provided commit helper:
+
+```bash
+bun commit-agent <type> <subject> [body]
+```
+
+### Available Commit Types
+
+- `feat`: A new feature
+- `fix`: A bug fix  
+- `docs`: Documentation only changes
+- `style`: Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)
+- `refactor`: A code change that neither fixes a bug nor adds a feature
+- `perf`: A code change that improves performance
+- `test`: Adding missing tests or correcting existing tests
+- `chore`: Changes to the build process or auxiliary tools and libraries such as documentation generation
+- `ci`: Changes to our CI configuration files and scripts
+- `build`: Changes that affect the build system or external dependencies
+- `revert`: Reverts a previous commit
+
+### Examples
+
+```bash
+# Implement task from spec/tasks.md
+bun commit-agent feat "implement task 1.5 fish disease detection" "Add TensorFlow Lite model integration in app/lib/model/inference.ts"
+
+# Bug fix in model manager
+bun commit-agent fix "resolve model loading timeout in manager.ts" "Increased timeout from 5s to 10s for larger TFLite models"
+
+# Add new UI component
+bun commit-agent feat "add detection results card component" "Created app/components/ui/detection-card.tsx for displaying disease detection results"
+
+# Test additions
+bun commit-agent test "add inference model property tests" "Added hypothesis tests for TFLite model validation in tests/models/inference.test.ts"
+
+# Documentation update
+bun commit-agent docs "update spec with new API endpoints" "Added REST API documentation to spec/design.md for external model serving"
+```
