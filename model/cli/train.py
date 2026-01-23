@@ -43,7 +43,7 @@ def main():
         "--device",
         type=str,
         default=None,
-        help="Device to train on: '0' for GPU, 'cpu' for CPU (default: auto-detect)",
+        help="Device to use: '0' for GPU, 'cpu' for CPU (default: auto-detect)",
     )
     parser.add_argument(
         "--hyp",
