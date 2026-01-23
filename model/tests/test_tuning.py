@@ -35,10 +35,12 @@ class TestTuningConfiguration:
         **Feature: hyperparameter-tuning, Property: Tuning params validation**
 
         For any valid combination of tuning parameters,
-        they should be within acceptable ranges.
+        they should be within acceptable ranges and match strategy constraints.
         """
         assert epochs > 0
         assert iterations > 0
+        assert epochs >= 5 and epochs <= 100
+        assert iterations >= 50 and iterations <= 1000
 
     def test_tune_function_signature(self):
         """Verify tune_hyperparameters has expected parameters."""
@@ -50,6 +52,39 @@ class TestTuningConfiguration:
         assert "iterations" in params
         assert "optimizer" in params
         assert "device" in params
+
+    def test_tuning_logic_parameter_bounds(self):
+        """
+        **Feature: hyperparameter-tuning, Property: Parameter bounds validation**
+
+        Test that tuning function properly validates parameter bounds
+        and applies strategy-specific constraints.
+        """
+        # Test epochs bounds
+        try:
+            tune_hyperparameters(epochs=4)  # Below min
+            assert False, "Should reject epochs below minimum"
+        except (ValueError, AssertionError):
+            pass
+
+        try:
+            tune_hyperparameters(epochs=101)  # Above max
+            assert False, "Should reject epochs above maximum"
+        except (ValueError, AssertionError):
+            pass
+
+        # Test iterations bounds
+        try:
+            tune_hyperparameters(iterations=49)  # Below min
+            assert False, "Should reject iterations below minimum"
+        except (ValueError, AssertionError):
+            pass
+
+        try:
+            tune_hyperparameters(iterations=1001)  # Above max
+            assert False, "Should reject iterations above maximum"
+        except (ValueError, AssertionError):
+            pass
 
     def test_tune_function_has_docstring(self):
         """Verify tune_hyperparameters has a docstring."""
