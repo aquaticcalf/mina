@@ -62,7 +62,7 @@ def tune_hyperparameters(
     # Ultralytics saves tuning results under runs/detect/tune/ by default
     tune_dir = Path("runs/detect/tune")
     best_hyp_path = tune_dir / "best_hyperparameters.yaml"
-    
+
     print("\nTuning complete!")
     print(f"Results saved to: {tune_dir}")
     print(f"Best hyperparameters: {best_hyp_path}")
