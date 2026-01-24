@@ -27,7 +27,6 @@ export default function HomeCameraScreen() {
     const cameraRef = React.useRef<CameraView>(null)
     const { width: screenW, height: screenH } = useWindowDimensions()
     const camSize = Math.min(screenW, screenH) - 40
-    const [ratio] = React.useState<"4:3" | "16:9">("4:3")
     const isFocused = useIsFocused()
     const [permission, requestPermission] = useCameraPermissions()
     const [lastCaptureUri, setLastCaptureUri] = React.useState<string | null>(
@@ -70,45 +69,7 @@ export default function HomeCameraScreen() {
     React.useEffect(() => {
         if (!canShowCamera) return
         if (Platform.OS === "web") return
-
-        let cancelled = false
-        const pickBestRatio = async () => {
-            try {
-                const ratios = await (
-                    cameraRef.current as unknown as {
-                        getSupportedRatiosAsync?: () => Promise<string[]>
-                    }
-                )?.getSupportedRatiosAsync?.()
-
-                if (!ratios || ratios.length === 0) return
-
-                const desired = screenW / screenH
-                let best: "4:3" | "16:9" = "4:3"
-                let bestDelta = Number.POSITIVE_INFINITY
-
-                for (const r of ratios) {
-                    if (r !== "4:3" && r !== "16:9") continue
-                    const [w, h] = r.split(":").map(Number)
-                    const value = w / h
-                    const delta = Math.abs(value - desired)
-                    if (delta < bestDelta) {
-                        bestDelta = delta
-                        best = r
-                    }
-                }
-
-                if (!cancelled) {
-                    // Square capture is enforced via post-processing crop
-                }
-            } catch {
-                // ignore: ratio discovery is best-effort
-            }
-        }
-
-        return () => {
-            cancelled = true
-        }
-    }, [canShowCamera, screenH, screenW])
+    }, [canShowCamera])
 
     const capture = async () => {
         try {
@@ -129,6 +90,9 @@ export default function HomeCameraScreen() {
                 const manipulatedImage = await ImageManipulator.manipulateAsync(
                     photo.uri,
                     [
+                        ...(cameraFacing === "front"
+                            ? [{ flip: ImageManipulator.FlipType.Horizontal }]
+                            : []),
                         {
                             crop: {
                                 originX: cropX,

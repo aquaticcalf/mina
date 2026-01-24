@@ -46,7 +46,12 @@ export default function SettingsScreen() {
                     <Text className="text-base font-medium text-foreground">
                         Save captures to Photos
                     </Text>
-                    <Switch checked={false} onCheckedChange={() => { /* TODO: implement save to photos */ }} />
+                    <Switch
+                        checked={false}
+                        onCheckedChange={() => {
+                            /* TODO: implement save to photos */
+                        }}
+                    />
                 </View>
 
                 <View className="mt-4 h-px bg-border" />
