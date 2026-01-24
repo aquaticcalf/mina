@@ -46,36 +46,12 @@ export default function HomeCameraScreen() {
 
     const canShowCamera = permission?.granted && isCameraActive
 
-    const sleepTimerRef = React.useRef<ReturnType<typeof setTimeout> | null>(
-        null,
-    )
-
     // Keep camera active when index screen is focused
     useFocusEffect(
         React.useCallback(() => {
-            // Clear any pending sleep timer when returning to camera
-            if (sleepTimerRef.current) {
-                clearTimeout(sleepTimerRef.current)
-                sleepTimerRef.current = null
-            }
             setCameraActive(true)
         }, [setCameraActive]),
     )
-
-    // Manage camera sleep timer on navigation away
-    React.useEffect(() => {
-        const unsubscribe = navigation.addListener("blur", () => {
-            // Start 5 second timer before turning off camera
-            sleepTimerRef.current = setTimeout(() => {
-                setCameraActive(false)
-            }, 5000)
-        })
-
-        return () => {
-            unsubscribe()
-            if (sleepTimerRef.current) clearTimeout(sleepTimerRef.current)
-        }
-    }, [navigation, setCameraActive])
 
     const toggleFlash = () => {
         const modes: ("off" | "on")[] = ["off", "on"]
