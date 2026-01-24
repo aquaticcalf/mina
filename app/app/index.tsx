@@ -29,7 +29,6 @@ export default function HomeCameraScreen() {
     const cameraRef = React.useRef<CameraView>(null)
     const { width: screenW, height: screenH } = useWindowDimensions()
     const camSize = Math.min(screenW, screenH) - 40
-    const isFocused = useIsFocused()
     const [permission, requestPermission] = useCameraPermissions()
     const [lastCaptureUri, setLastCaptureUri] = React.useState<string | null>(
         null,
@@ -38,7 +37,7 @@ export default function HomeCameraScreen() {
     const { cameraFacing, setCameraFacing, flashMode, setFlashMode } =
         useCamera()
 
-    const canShowCamera = permission?.granted && isFocused
+    const canShowCamera = permission?.granted
 
     const toggleFlash = () => {
         const modes: ("off" | "on")[] = ["off", "on"]
@@ -67,11 +66,6 @@ export default function HomeCameraScreen() {
                 return { className: "text-foreground/50" }
         }
     }
-
-    React.useEffect(() => {
-        if (!canShowCamera) return
-        if (Platform.OS === "web") return
-    }, [canShowCamera])
 
     const capture = async () => {
         try {

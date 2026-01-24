@@ -22,13 +22,13 @@ function RootLayoutContent() {
                 <Stack.Screen
                     name="history"
                     options={{
-                        presentation: "modal",
+                        presentation: "transparentModal",
                     }}
                 />
                 <Stack.Screen
                     name="settings"
                     options={{
-                        presentation: "modal",
+                        presentation: "transparentModal",
                     }}
                 />
                 <Stack.Screen name="crop" />
