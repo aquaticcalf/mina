@@ -1,27 +1,30 @@
 import { useLocalSearchParams, useRouter } from "expo-router"
-import { CheckIcon, XIcon } from "lucide-react-native"
+import { CheckIcon } from "lucide-react-native"
 import React, { useState, useEffect } from "react"
 import { Image, Pressable, View, Dimensions } from "react-native"
 import * as ImageManipulator from "expo-image-manipulator"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
+import { useNavigationState } from "@/lib/navigation"
 
 export default function CropScreen() {
     const router = useRouter()
+    const { setOriginalImageUri } = useNavigationState()
     const { imageUri: originalImageUri } = useLocalSearchParams<{
         imageUri: string
     }>()
     const [croppedImageUri, setCroppedImageUri] = useState<string | null>(null)
-    const [isCropping, setIsCropping] = useState(false)
     const [isProcessing, setIsProcessing] = useState(true)
 
     const screenWidth = Dimensions.get("window").width
     const imageSize = screenWidth - 32
 
-    // Crop to square immediately on mount
+    // Store original image URI and crop to square immediately on mount
     useEffect(() => {
         if (!originalImageUri) return
+
+        setOriginalImageUri(originalImageUri)
 
         const processCropImage = async () => {
             try {
@@ -71,13 +74,13 @@ export default function CropScreen() {
         }
 
         processCropImage()
-    }, [originalImageUri])
+    }, [originalImageUri, setOriginalImageUri])
 
     const handleCrop = () => {
         if (!croppedImageUri) return
         router.push({
             pathname: "/preview",
-            params: { imageUri: croppedImageUri },
+            params: { imageUri: croppedImageUri, from: "crop" },
         })
     }
 
@@ -94,17 +97,10 @@ export default function CropScreen() {
     return (
         <View className="flex-1 bg-background">
             {/* Header */}
-            <View className="flex-row justify-between items-center pt-12 px-4 pb-4">
-                <Pressable
-                    onPress={() => router.push("/")}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-background/80"
-                >
-                    <Icon as={XIcon} size={18} className="text-foreground" />
-                </Pressable>
+            <View className="flex-row justify-center items-center pt-12 px-4 pb-4">
                 <Text className="text-lg font-semibold text-foreground">
                     Crop to Square
                 </Text>
-                <View className="w-10" />
             </View>
 
             {/* Image preview - shows the cropped square */}
@@ -186,7 +182,7 @@ export default function CropScreen() {
                     variant="outline"
                     className="flex-1 h-12"
                     onPress={() => router.push("/")}
-                    disabled={isCropping}
+                    disabled={isProcessing}
                 >
                     <Text>Cancel</Text>
                 </Button>

@@ -8,6 +8,7 @@ import { FlatTabBar } from "@/components/ui/flat-tab-bar"
 import { CameraProvider } from "@/lib/camera"
 import { ModelProvider } from "@/lib/model"
 import { useDefaultTab } from "@/lib/navigation/default"
+import { NavigationProvider } from "@/lib/navigation"
 import { NAV_THEME, ThemeProvider, useTheme } from "@/lib/theme"
 
 export { ErrorBoundary } from "expo-router"
@@ -38,11 +39,13 @@ function RootLayoutContent() {
 export default function RootLayout() {
     return (
         <ThemeProvider>
-            <ModelProvider>
-                <CameraProvider>
-                    <RootLayoutContent />
-                </CameraProvider>
-            </ModelProvider>
+            <NavigationProvider>
+                <ModelProvider>
+                    <CameraProvider>
+                        <RootLayoutContent />
+                    </CameraProvider>
+                </ModelProvider>
+            </NavigationProvider>
         </ThemeProvider>
     )
 }
