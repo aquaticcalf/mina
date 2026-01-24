@@ -4,12 +4,12 @@ import * as ImageManipulator from "expo-image-manipulator"
 import * as ImagePicker from "expo-image-picker"
 import { useRouter } from "expo-router"
 import {
+    FlashlightIcon,
+    FlashlightOffIcon,
     HistoryIcon,
     ImageIcon,
     RefreshCcwIcon,
     SettingsIcon,
-    ZapIcon,
-    ZapOffIcon,
 } from "lucide-react-native"
 import * as React from "react"
 import {
@@ -64,17 +64,17 @@ export default function HomeCameraScreen() {
     const getFlashIcon = () => {
         switch (flashMode) {
             case "on":
-                return ZapIcon
+                return FlashlightIcon
             case "off":
             default:
-                return ZapOffIcon
+                return FlashlightOffIcon
         }
     }
 
     const getFlashIconProps = () => {
         switch (flashMode) {
             case "on":
-                return { className: "text-yellow-500" }
+                return { className: "text-foreground" }
             case "off":
             default:
                 return { className: "text-foreground/50" }
