@@ -7,6 +7,7 @@ import { StatusBar } from "expo-status-bar"
 import { CameraProvider } from "@/lib/camera"
 import { ModelProvider } from "@/lib/model"
 import { NavigationProvider } from "@/lib/navigation"
+import { SettingsProvider } from "@/lib/settings"
 import { NAV_THEME, ThemeProvider, useTheme } from "@/lib/theme"
 
 export { ErrorBoundary } from "expo-router"
@@ -53,13 +54,15 @@ function RootLayoutContent() {
 export default function RootLayout() {
     return (
         <ThemeProvider>
-            <NavigationProvider>
-                <ModelProvider>
-                    <CameraProvider>
-                        <RootLayoutContent />
-                    </CameraProvider>
-                </ModelProvider>
-            </NavigationProvider>
+            <SettingsProvider>
+                <NavigationProvider>
+                    <ModelProvider>
+                        <CameraProvider>
+                            <RootLayoutContent />
+                        </CameraProvider>
+                    </ModelProvider>
+                </NavigationProvider>
+            </SettingsProvider>
         </ThemeProvider>
     )
 }

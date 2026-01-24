@@ -13,15 +13,10 @@ import {
     Plus,
     RefreshCcwIcon,
     SettingsIcon,
-    ChevronUp,
-    ChevronDown,
 } from "lucide-react-native"
 import * as React from "react"
 import {
-    FlatList,
-    Image,
     Linking,
-    Modal,
     Platform,
     Pressable,
     useWindowDimensions,
@@ -32,6 +27,7 @@ import { Icon } from "@/components/ui/icon"
 import { SliderComponent } from "@/components/ui/slider"
 import { Text } from "@/components/ui/text"
 import { useCamera } from "@/lib/camera"
+import { useSettings } from "@/lib/settings"
 
 export default function HomeCameraScreen() {
     const router = useRouter()
@@ -57,6 +53,7 @@ export default function HomeCameraScreen() {
         isCameraActive,
         setCameraActive,
     } = useCamera()
+    const { saveCapturesToPhotos } = useSettings()
 
     const [touchStart, setTouchStart] = React.useState<number | null>(null)
 
@@ -212,6 +209,40 @@ export default function HomeCameraScreen() {
                     },
                 )
 
+                // Save to media library if enabled
+                if (saveCapturesToPhotos) {
+                    try {
+                        const { status } =
+                            await MediaLibrary.requestPermissionsAsync()
+                        if (status === "granted") {
+                            const album =
+                                await MediaLibrary.getAlbumAsync("mina")
+                            if (album) {
+                                await MediaLibrary.addAssetsToAlbumAsync(
+                                    [manipulatedImage.uri],
+                                    album,
+                                    false,
+                                )
+                            } else {
+                                const createdAlbum =
+                                    await MediaLibrary.createAlbumAsync(
+                                        "mina",
+                                        manipulatedImage.uri,
+                                        false,
+                                    )
+                                if (!createdAlbum) {
+                                    console.warn("failed to create mina album")
+                                }
+                            }
+                        }
+                    } catch (err) {
+                        console.warn(
+                            "failed to save photo to media library",
+                            err,
+                        )
+                    }
+                }
+
                 setLastCaptureUri(manipulatedImage.uri)
                 router.push({
                     pathname: "/preview",
@@ -352,48 +383,6 @@ export default function HomeCameraScreen() {
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
             >
-                <Pressable
-                    className="mb-4 items-center"
-                    onPress={() => setShowCarousel(!showCarousel)}
-                >
-                    <Icon
-                        as={showCarousel ? ChevronDown : ChevronUp}
-                        size={24}
-                        className="text-foreground/60"
-                    />
-                </Pressable>
-
-                {showCarousel && (
-                    <View className="mb-6 w-full">
-                        <FlatList
-                            data={recentPhotos}
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            keyExtractor={(item) => item.id}
-                            renderItem={({ item }) => (
-                                <Pressable
-                                    onPress={() =>
-                                        selectPhotoFromCarousel(item)
-                                    }
-                                    className="mr-3"
-                                >
-                                    <Image
-                                        source={{ uri: item.uri }}
-                                        style={{
-                                            width: 80,
-                                            height: 80,
-                                            borderRadius: 8,
-                                        }}
-                                    />
-                                </Pressable>
-                            )}
-                            contentContainerStyle={{
-                                paddingHorizontal: 8,
-                            }}
-                        />
-                    </View>
-                )}
-
                 <View className="flex-row items-center justify-between self-stretch">
                     <Pressable
                         className="h-16 w-16 items-center justify-center rounded-full bg-background/20"

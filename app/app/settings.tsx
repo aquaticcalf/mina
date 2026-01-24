@@ -5,9 +5,11 @@ import { Icon } from "@/components/ui/icon"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
 import { useTheme } from "@/lib/theme/context"
+import { useSettings } from "@/lib/settings"
 
 export default function SettingsScreen() {
     const { colorScheme, toggleColorScheme } = useTheme()
+    const { saveCapturesToPhotos, toggleSaveCapturesToPhotos } = useSettings()
     const themeIcon = colorScheme === "dark" ? MoonStarIcon : SunIcon
 
     return (
@@ -47,10 +49,8 @@ export default function SettingsScreen() {
                         Save captures to Photos
                     </Text>
                     <Switch
-                        checked={false}
-                        onCheckedChange={() => {
-                            /* TODO: implement save to photos */
-                        }}
+                        checked={saveCapturesToPhotos}
+                        onCheckedChange={toggleSaveCapturesToPhotos}
                     />
                 </View>
 
