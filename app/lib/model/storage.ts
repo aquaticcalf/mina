@@ -3,6 +3,7 @@
  */
 
 import * as FileSystem from "expo-file-system/legacy"
+import { storage } from "@/lib/storage"
 import type { ModelChannel, ModelMetadata } from "@/lib/model/types"
 
 const STORAGE_KEYS = {
@@ -29,20 +30,11 @@ export async function ensureModelDirectory(): Promise<void> {
 export async function saveModelMetadata(
     metadata: ModelMetadata,
 ): Promise<void> {
-    const AsyncStorage = await import(
-        "@react-native-async-storage/async-storage"
-    )
-    await AsyncStorage.default.setItem(
-        STORAGE_KEYS.METADATA,
-        JSON.stringify(metadata),
-    )
+    storage.set(STORAGE_KEYS.METADATA, JSON.stringify(metadata))
 }
 
 export async function loadModelMetadata(): Promise<ModelMetadata | null> {
-    const AsyncStorage = await import(
-        "@react-native-async-storage/async-storage"
-    )
-    const data = await AsyncStorage.default.getItem(STORAGE_KEYS.METADATA)
+    const data = storage.getString(STORAGE_KEYS.METADATA)
     if (!data) return null
 
     try {
@@ -53,10 +45,7 @@ export async function loadModelMetadata(): Promise<ModelMetadata | null> {
 }
 
 export async function clearModelMetadata(): Promise<void> {
-    const AsyncStorage = await import(
-        "@react-native-async-storage/async-storage"
-    )
-    await AsyncStorage.default.removeItem(STORAGE_KEYS.METADATA)
+    storage.delete(STORAGE_KEYS.METADATA)
 }
 
 export async function modelFileExists(channel: ModelChannel): Promise<boolean> {

@@ -4,15 +4,15 @@
  * Provides theme state to the entire app and persists user preference.
  */
 
-import AsyncStorage from "@react-native-async-storage/async-storage"
 import { useColorScheme as useNativeWindColorScheme } from "nativewind"
 import type React from "react"
 import { createContext, useContext, useEffect, useState } from "react"
+import { storage } from "@/lib/storage"
 import type { ColorScheme } from "@/lib/theme/types"
 
 interface ThemeContextType {
     colorScheme: ColorScheme
-    toggleColorScheme: () => Promise<void>
+    toggleColorScheme: () => void
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
@@ -24,31 +24,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [isLoaded, setIsLoaded] = useState(false)
 
     useEffect(() => {
-        loadTheme()
+        const saved = storage.getString(THEME_STORAGE_KEY)
+        if (saved === "light" || saved === "dark") {
+            nativeWindColorScheme.setColorScheme(saved)
+        }
+        setIsLoaded(true)
     }, [])
 
-    const loadTheme = async () => {
-        try {
-            const saved = await AsyncStorage.getItem(THEME_STORAGE_KEY)
-            if (saved === "light" || saved === "dark") {
-                nativeWindColorScheme.setColorScheme(saved)
-            }
-        } catch (e) {
-            console.error("Failed to load theme:", e)
-        } finally {
-            setIsLoaded(true)
-        }
-    }
-
-    const handleToggleColorScheme = async () => {
+    const handleToggleColorScheme = () => {
         const newScheme =
             nativeWindColorScheme.colorScheme === "light" ? "dark" : "light"
         nativeWindColorScheme.setColorScheme(newScheme)
-        try {
-            await AsyncStorage.setItem(THEME_STORAGE_KEY, newScheme)
-        } catch (e) {
-            console.error("Failed to save theme:", e)
-        }
+        storage.set(THEME_STORAGE_KEY, newScheme)
     }
 
     if (!isLoaded) {

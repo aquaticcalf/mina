@@ -1,5 +1,5 @@
-import AsyncStorage from "@react-native-async-storage/async-storage"
 import * as FileSystem from "expo-file-system/legacy"
+import { storage } from "@/lib/storage"
 import type { HistoryItem } from "./types"
 
 const STORAGE_KEY = "mina_history_items"
@@ -56,14 +56,14 @@ export async function saveHistoryItem(
     const currentItems = await getHistoryItems()
     const newItems = [newItem, ...currentItems]
 
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newItems))
+    storage.set(STORAGE_KEY, JSON.stringify(newItems))
 
     return newItem
 }
 
 export async function getHistoryItems(): Promise<HistoryItem[]> {
     try {
-        const json = await AsyncStorage.getItem(STORAGE_KEY)
+        const json = storage.getString(STORAGE_KEY)
         return json ? JSON.parse(json) : []
     } catch (e) {
         console.error("Failed to load history items", e)
@@ -92,5 +92,5 @@ export async function deleteHistoryItem(id: string): Promise<void> {
     }
 
     const newItems = items.filter((item) => item.id !== id)
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(newItems))
+    storage.set(STORAGE_KEY, JSON.stringify(newItems))
 }

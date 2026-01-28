@@ -3,25 +3,25 @@ import type { DetectionSession } from "@/lib/model/types"
 
 const mockStorage: Record<string, string> = {}
 
-const mockAsyncStorage = {
-    getItem: mock(async (key: string): Promise<string | null> => {
+const mockMMKV = {
+    getString: mock((key: string): string | null => {
         return mockStorage[key] ?? null
     }),
-    setItem: mock(async (key: string, value: string): Promise<void> => {
+    set: mock((key: string, value: string): void => {
         mockStorage[key] = value
     }),
-    removeItem: mock(async (key: string): Promise<void> => {
+    delete: mock((key: string): void => {
         delete mockStorage[key]
     }),
-    clear: mock(async (): Promise<void> => {
+    clearAll: mock((): void => {
         for (const key of Object.keys(mockStorage)) {
             delete mockStorage[key]
         }
     }),
 }
 
-mock.module("@react-native-async-storage/async-storage", () => ({
-    default: mockAsyncStorage,
+mock.module("@/lib/storage", () => ({
+    storage: mockMMKV,
 }))
 
 const { clearAll, deleteSession, getSession, getSessions, saveSession } =
@@ -48,11 +48,13 @@ describe("**Feature: fish-disease-detection, StorageService**", () => {
         for (const key of Object.keys(mockStorage)) {
             delete mockStorage[key]
         }
-        mockAsyncStorage.getItem.mockClear()
-        mockAsyncStorage.setItem.mockClear()
-        mockAsyncStorage.removeItem.mockClear()
-        mockAsyncStorage.clear.mockClear()
+        mockMMKV.getString.mockClear()
+        mockMMKV.set.mockClear()
+        mockMMKV.delete.mockClear()
+        mockMMKV.clearAll.mockClear()
     })
+
+    // ... rest of tests remain exactly the same as they test the public API of sessions.ts
 
     describe("saveSession", () => {
         it("should save a session to storage", async () => {

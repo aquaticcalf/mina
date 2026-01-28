@@ -3,14 +3,14 @@
  * Handles persisting and retrieving detection history using AsyncStorage.
  */
 
-import AsyncStorage from "@react-native-async-storage/async-storage"
+import { storage } from "@/lib/storage"
 import type { DetectionSession } from "@/lib/model/types"
 import { parseSession, serializeSession } from "@/lib/model/types"
 
 const STORAGE_KEY = "mina_detection_sessions"
 
 async function getAllSessionJsons(): Promise<string[]> {
-    const data = await AsyncStorage.getItem(STORAGE_KEY)
+    const data = storage.getString(STORAGE_KEY)
     if (!data) return []
     try {
         const parsed = JSON.parse(data)
@@ -26,7 +26,7 @@ async function getAllSessionJsons(): Promise<string[]> {
 }
 
 async function saveAllSessionJsons(sessionJsons: string[]): Promise<void> {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(sessionJsons))
+    storage.set(STORAGE_KEY, JSON.stringify(sessionJsons))
 }
 
 export async function saveSession(session: DetectionSession): Promise<void> {
@@ -78,5 +78,5 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 export async function clearAll(): Promise<void> {
-    await AsyncStorage.removeItem(STORAGE_KEY)
+    storage.delete(STORAGE_KEY)
 }
