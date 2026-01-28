@@ -8,18 +8,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { getDiseaseInfo } from "@/lib/model/disease/info"
 import type { DiseaseClass } from "@/lib/model/types"
 
-/**
- * Disease Info Screen - Displays detailed information about a specific disease
- *
- * Features:
- * - Shows disease display name
- * - Displays description
- * - Lists symptoms
- * - Lists recommended treatments
- * - Color-coded by severity
- *
- * Requirements: 6.1, 6.2, 6.3
- */
 export default function DiseaseInfoScreen() {
     const router = useRouter()
     const navigation = useNavigation()
