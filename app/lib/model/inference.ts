@@ -10,7 +10,7 @@ import {
     type TensorflowModel,
 } from "react-native-fast-tflite"
 import * as ImageManipulator from "expo-image-manipulator"
-import * as FileSystem from "expo-file-system"
+import * as FileSystem from "expo-file-system/legacy"
 import { Skia } from "@shopify/react-native-skia"
 import { DISEASE_CLASSES } from "@/lib/model/types"
 import type { BoundingBox, Detection, DiseaseClass } from "@/lib/model/types"

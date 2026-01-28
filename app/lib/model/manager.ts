@@ -5,7 +5,7 @@
  * (dev or prod). Checks for updates by comparing release dates.
  */
 
-import * as FileSystem from "expo-file-system"
+import * as FileSystem from "expo-file-system/legacy"
 import type {
     GitHubAsset,
     GitHubRelease,
