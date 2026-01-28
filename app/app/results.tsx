@@ -372,7 +372,7 @@ export default function ResultsScreen() {
                             // Navigate to disease info for the top detection
                             const topDetection = results.detections[0]
                             router.push({
-                                pathname: "/disease-info",
+                                pathname: "/disease/info",
                                 params: {
                                     diseaseClass: topDetection.diseaseClass,
                                 },
