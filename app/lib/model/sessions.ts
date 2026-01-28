@@ -78,5 +78,5 @@ export async function deleteSession(id: string): Promise<void> {
 }
 
 export async function clearAll(): Promise<void> {
-    storage.delete(STORAGE_KEY)
+    storage.remove(STORAGE_KEY)
 }

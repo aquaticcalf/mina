@@ -45,7 +45,7 @@ export async function loadModelMetadata(): Promise<ModelMetadata | null> {
 }
 
 export async function clearModelMetadata(): Promise<void> {
-    storage.delete(STORAGE_KEYS.METADATA)
+    storage.remove(STORAGE_KEYS.METADATA)
 }
 
 export async function modelFileExists(channel: ModelChannel): Promise<boolean> {

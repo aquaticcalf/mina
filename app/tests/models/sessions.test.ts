@@ -10,7 +10,7 @@ const mockMMKV = {
     set: mock((key: string, value: string): void => {
         mockStorage[key] = value
     }),
-    delete: mock((key: string): void => {
+    remove: mock((key: string): void => {
         delete mockStorage[key]
     }),
     clearAll: mock((): void => {
@@ -50,7 +50,7 @@ describe("**Feature: fish-disease-detection, StorageService**", () => {
         }
         mockMMKV.getString.mockClear()
         mockMMKV.set.mockClear()
-        mockMMKV.delete.mockClear()
+        mockMMKV.remove.mockClear()
         mockMMKV.clearAll.mockClear()
     })
 
