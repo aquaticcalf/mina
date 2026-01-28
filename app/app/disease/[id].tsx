@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native"
 import { Text } from "@/components/ui/text"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { getDiseaseInfo } from "@/lib/model/disease-info"
+import { getDiseaseInfo } from "@/lib/model/disease/info"
 import type { DiseaseClass } from "@/lib/model/types"
 
 /**

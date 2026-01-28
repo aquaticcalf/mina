@@ -177,3 +177,17 @@ export function getDiseaseInfo(diseaseClass: DiseaseClass): DiseaseInfo {
 export function getAllDiseaseInfo(): DiseaseInfo[] {
     return Object.values(DISEASE_INFO)
 }
+
+/**
+ * Get display label for a disease class.
+ * Converts "bacterial_infection" to "Bacterial Infection".
+ *
+ * @param diseaseClass - The disease class
+ * @returns Formatted display name
+ */
+export function getDiseaseLabel(diseaseClass: string): string {
+    return diseaseClass
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ")
+}

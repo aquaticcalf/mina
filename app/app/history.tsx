@@ -12,7 +12,10 @@ import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
 import { getHistoryItems } from "@/lib/history/storage"
 import type { HistoryItem } from "@/lib/history/types"
-import { getDiseaseColor, getDiseaseLabel } from "@/lib/utils/disease"
+import {
+    getBoundingBoxColor,
+    getDiseaseLabel,
+} from "@/lib/model/disease/info"
 
 export default function HistoryScreen() {
     const router = useRouter()
@@ -50,11 +53,11 @@ export default function HistoryScreen() {
 
     const getPrimaryDetection = (item: HistoryItem) => {
         if (item.results.detections.length === 0) {
-            return { label: "Healthy", color: getDiseaseColor("healthy") }
+            return { label: "Healthy", color: getBoundingBoxColor("healthy") }
         }
         const topDetection = item.results.detections[0]
         const label = getDiseaseLabel(topDetection.diseaseClass)
-        const color = getDiseaseColor(topDetection.diseaseClass)
+        const color = getBoundingBoxColor(topDetection.diseaseClass)
 
         return { label, color, confidence: topDetection.confidence }
     }

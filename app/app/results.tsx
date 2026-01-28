@@ -9,7 +9,7 @@ import { Text } from "@/components/ui/text"
 import { useModel } from "@/lib/model"
 import type { InferenceResult } from "@/lib/model/inference"
 import { saveHistoryItem, getHistoryItem } from "@/lib/history/storage"
-import { getDiseaseColor, getDiseaseLabel } from "@/lib/utils/disease"
+import { getBoundingBoxColor, getDiseaseLabel } from "@/lib/model/disease/info"
 
 export default function ResultsScreen() {
     const router = useRouter()
@@ -194,7 +194,7 @@ export default function ResultsScreen() {
             const h = bbox.height * height
 
             // Get color based on disease class
-            const colorHex = getDiseaseColor(diseaseClass)
+            const colorHex = getBoundingBoxColor(diseaseClass)
             paint.setColor(Skia.Color(colorHex))
             bgPaint.setColor(Skia.Color(colorHex))
             bgPaint.setAlphaf(0.7) // Reset alpha as setColor might reset it? (Safety)
@@ -315,7 +315,7 @@ export default function ResultsScreen() {
                                             <Text
                                                 className="text-lg font-semibold"
                                                 style={{
-                                                    color: getDiseaseColor(
+                                                    color: getBoundingBoxColor(
                                                         detection.diseaseClass,
                                                     ),
                                                 }}
