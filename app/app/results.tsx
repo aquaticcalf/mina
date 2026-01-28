@@ -9,6 +9,7 @@ import { Text } from "@/components/ui/text"
 import { useModel } from "@/lib/model"
 import type { InferenceResult } from "@/lib/model/inference"
 import { saveHistoryItem, getHistoryItem } from "@/lib/history/storage"
+import { getDiseaseColor, getDiseaseLabel } from "@/lib/utils/disease"
 
 export default function ResultsScreen() {
     const router = useRouter()
@@ -193,7 +194,7 @@ export default function ResultsScreen() {
             const h = bbox.height * height
 
             // Get color based on disease class
-            const colorHex = getDiseaseColorHex(diseaseClass)
+            const colorHex = getDiseaseColor(diseaseClass)
             paint.setColor(Skia.Color(colorHex))
             bgPaint.setColor(Skia.Color(colorHex))
             bgPaint.setAlphaf(0.7) // Reset alpha as setColor might reset it? (Safety)
@@ -241,47 +242,6 @@ export default function ResultsScreen() {
         })
 
         return resultUri
-    }
-
-    const getDiseaseLabel = (diseaseClass: string): string => {
-        return diseaseClass
-            .split("_")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")
-    }
-
-    const getDiseaseColorHex = (diseaseClass: string): string => {
-        switch (diseaseClass) {
-            case "healthy":
-                return "#22c55e" // green-500
-            case "bacterial_infection":
-                return "#ef4444" // red-500
-            case "fungal_infection":
-                return "#f97316" // orange-500
-            case "parasite":
-                return "#eab308" // yellow-500
-            case "white_tail":
-                return "#a855f7" // purple-500
-            default:
-                return "#6b7280" // gray-500
-        }
-    }
-
-    const getDiseaseColorClass = (diseaseClass: string): string => {
-        switch (diseaseClass) {
-            case "healthy":
-                return "text-green-500"
-            case "bacterial_infection":
-                return "text-red-500"
-            case "fungal_infection":
-                return "text-orange-500"
-            case "parasite":
-                return "text-yellow-500"
-            case "white_tail":
-                return "text-purple-500"
-            default:
-                return "text-gray-500"
-        }
     }
 
     return (
@@ -353,7 +313,12 @@ export default function ResultsScreen() {
                                     >
                                         <View className="flex-row justify-between items-start mb-2">
                                             <Text
-                                                className={`text-lg font-semibold ${getDiseaseColorClass(detection.diseaseClass)}`}
+                                                className="text-lg font-semibold"
+                                                style={{
+                                                    color: getDiseaseColor(
+                                                        detection.diseaseClass,
+                                                    ),
+                                                }}
                                             >
                                                 {getDiseaseLabel(
                                                     detection.diseaseClass,
@@ -405,6 +370,7 @@ export default function ResultsScreen() {
                         className="flex-1 h-12"
                         onPress={() => {
                             // TODO: Navigate to disease info or treatment recommendations
+                            // Currently we don't have a details page, so just log
                             console.log(
                                 "View details for detections:",
                                 results.detections,

@@ -12,6 +12,7 @@ import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
 import { getHistoryItems } from "@/lib/history/storage"
 import type { HistoryItem } from "@/lib/history/types"
+import { getDiseaseColor, getDiseaseLabel } from "@/lib/utils/disease"
 
 export default function HistoryScreen() {
     const router = useRouter()
@@ -49,29 +50,11 @@ export default function HistoryScreen() {
 
     const getPrimaryDetection = (item: HistoryItem) => {
         if (item.results.detections.length === 0) {
-            return { label: "Healthy", color: "text-green-500" }
+            return { label: "Healthy", color: getDiseaseColor("healthy") }
         }
         const topDetection = item.results.detections[0]
-        const label = topDetection.diseaseClass
-            .split("_")
-            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(" ")
-
-        let color = "text-gray-500"
-        switch (topDetection.diseaseClass) {
-            case "bacterial_infection":
-                color = "text-red-500"
-                break
-            case "fungal_infection":
-                color = "text-orange-500"
-                break
-            case "parasite":
-                color = "text-yellow-500"
-                break
-            case "white_tail":
-                color = "text-purple-500"
-                break
-        }
+        const label = getDiseaseLabel(topDetection.diseaseClass)
+        const color = getDiseaseColor(topDetection.diseaseClass)
 
         return { label, color, confidence: topDetection.confidence }
     }
@@ -97,7 +80,8 @@ export default function HistoryScreen() {
                 <View className="flex-1 ml-3 justify-center">
                     <View className="flex-row justify-between items-center mb-1">
                         <Text
-                            className={`font-semibold text-base ${primary.color}`}
+                            className="font-semibold text-base"
+                            style={{ color: primary.color }}
                         >
                             {primary.label}
                         </Text>
