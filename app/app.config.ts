@@ -57,5 +57,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         // Model channel: "dev" or "prod"
         // Set via EXPO_PUBLIC_MODEL_CHANNEL env var at build time
         modelChannel: process.env.EXPO_PUBLIC_MODEL_CHANNEL ?? "prod",
+        eas: {
+            projectId: "4ee8677c-b53f-405f-ae45-afb23a3502f8",
+        },
     },
 })
