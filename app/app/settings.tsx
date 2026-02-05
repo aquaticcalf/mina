@@ -10,9 +10,19 @@ import { Icon } from "@/components/ui/icon"
 import { Switch } from "@/components/ui/switch"
 import { Text } from "@/components/ui/text"
 import { useTheme } from "@/lib/theme/context"
+import { useLogger } from "@/lib/log"
 
 export default function SettingsScreen() {
     const { colorScheme, toggleColorScheme } = useTheme()
+    const { info, debug } = useLogger()
+
+    debug("SettingsScreen rendered", { colorScheme })
+
+    const handleThemeToggle = () => {
+        const newScheme = colorScheme === "dark" ? "light" : "dark"
+        info("Theme changed", { from: colorScheme, to: newScheme })
+        toggleColorScheme()
+    }
 
     return (
         <View className="flex-1 bg-background">
@@ -33,7 +43,7 @@ export default function SettingsScreen() {
                     </Text>
                     <Pressable
                         className="flex-row items-center justify-between bg-card rounded-xl p-4 border border-border active:border-primary"
-                        onPress={toggleColorScheme}
+                        onPress={handleThemeToggle}
                     >
                         <View className="flex-row items-center gap-3">
                             <View className="w-12 h-12 rounded-xl bg-primary/10 items-center justify-center">

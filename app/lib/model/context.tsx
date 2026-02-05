@@ -22,6 +22,9 @@ import {
     type InferenceResult,
 } from "@/lib/model/inference"
 import type { ModelState } from "@/lib/model/types"
+import { createComponentLogger } from "@/lib/log"
+
+const logger = createComponentLogger("model/context")
 
 interface ModelContextValue extends ModelState {
     /** Re-download the model from scratch */
@@ -49,6 +52,8 @@ export function ModelProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         let cancelled = false
 
+        logger.info("ModelProvider mounted, starting initialization")
+
         async function init() {
             setState((prev) => ({ ...prev, isLoading: true, progress: 0 }))
 
@@ -60,6 +65,11 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
             if (!cancelled) {
                 setState(result)
+                logger.info("Model initialization completed", {
+                    isReady: result.isReady,
+                    hasError: !!result.error,
+                    metadata: result.metadata,
+                })
             }
         }
 
@@ -67,10 +77,12 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 
         return () => {
             cancelled = true
+            logger.debug("ModelProvider unmounted")
         }
     }, [])
 
     const forceUpdate = useCallback(async () => {
+        logger.info("Force update requested")
         setState((prev) => ({
             ...prev,
             isLoading: true,
@@ -83,35 +95,63 @@ export function ModelProvider({ children }: { children: ReactNode }) {
         })
 
         setState(result)
+        logger.info("Force update completed", {
+            isReady: result.isReady,
+            hasError: !!result.error,
+        })
     }, [])
 
     const getModelPath = useCallback(async () => {
-        return getLocalModelPath()
+        const path = await getLocalModelPath()
+        logger.debug("getModelPath called", { hasPath: !!path })
+        return path
     }, [])
 
     const runInference = useCallback(
         async (imageUri: string): Promise<InferenceResult | null> => {
+            logger.info("runInference called", {
+                imageUri,
+                isReady: state.isReady,
+            })
+
             try {
                 // Check if model is ready
                 if (!state.isReady || state.error) {
-                    console.warn("Model not ready for inference:", state.error)
+                    logger.warn("Model not ready for inference", {
+                        isReady: state.isReady,
+                        error: state.error,
+                    })
                     return null
                 }
 
                 // Get model path
                 const modelPath = await getLocalModelPath()
                 if (!modelPath) {
-                    console.warn("Model file not found")
+                    logger.error(
+                        "Model file not found",
+                        new Error("Model path is null"),
+                    )
                     return null
                 }
 
+                logger.info("Running inference", { imageUri, modelPath })
+
                 // Run inference
                 const result = await runModelInference(imageUri, modelPath)
+                logger.info("Inference completed successfully", {
+                    imageUri,
+                    detectionsCount: result.detections.length,
+                    inferenceTimeMs: result.inferenceTimeMs,
+                })
                 return result
             } catch (error) {
                 const message =
                     error instanceof Error ? error.message : String(error)
-                console.error("Inference error:", message)
+                logger.error(
+                    "Inference error",
+                    error instanceof Error ? error : new Error(message),
+                    { imageUri },
+                )
                 return null
             }
         },
@@ -131,6 +171,10 @@ export function ModelProvider({ children }: { children: ReactNode }) {
 export function useModel(): ModelContextValue {
     const context = useContext(ModelContext)
     if (!context) {
+        logger.error(
+            "useModel called outside ModelProvider",
+            new Error("useModel must be used within a ModelProvider"),
+        )
         throw new Error("useModel must be used within a ModelProvider")
     }
     return context

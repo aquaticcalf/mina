@@ -14,6 +14,9 @@ import * as FileSystem from "expo-file-system/legacy"
 import { Skia } from "@shopify/react-native-skia"
 import { DISEASE_CLASSES } from "@/lib/model/types"
 import type { BoundingBox, Detection, DiseaseClass } from "@/lib/model/types"
+import { createComponentLogger, logTiming } from "@/lib/log"
+
+const logger = createComponentLogger("model/inference")
 
 const IMAGE_SIZE = 640
 const CONFIDENCE_THRESHOLD = 0.3
@@ -214,8 +217,11 @@ export interface InferenceResult {
 export async function loadModel(modelPath: string): Promise<TensorflowModel> {
     // Return cached model if already loaded for this path
     if (cachedModel && cachedModelPath === modelPath) {
+        logger.debug("Using cached model", { modelPath })
         return cachedModel
     }
+
+    logger.info("Loading TFLite model", { modelPath })
 
     // Load new model
     try {
@@ -224,9 +230,15 @@ export async function loadModel(modelPath: string): Promise<TensorflowModel> {
         })
         cachedModel = model
         cachedModelPath = modelPath
+        logger.info("Model loaded successfully", { modelPath })
         return model
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
+        logger.error(
+            "Failed to load TFLite model",
+            error instanceof Error ? error : new Error(message),
+            { modelPath },
+        )
         throw new Error(`Failed to load TFLite model: ${message}`)
     }
 }
@@ -244,6 +256,7 @@ export function isModelLoaded(): boolean {
  * Dispose of the cached model and free resources.
  */
 export function disposeModel(): void {
+    logger.info("Disposing cached model")
     cachedModel = null
     cachedModelPath = null
 }
@@ -260,6 +273,8 @@ export function disposeModel(): void {
  * @returns RGB tensor (640x640x3) as Uint8Array
  */
 async function preprocessImage(imageUri: string): Promise<Uint8Array> {
+    logger.debug("Preprocessing image", { imageUri })
+
     try {
         // Step 1: Resize image to 640x640
         const resized = await ImageManipulator.manipulateAsync(
@@ -270,6 +285,11 @@ async function preprocessImage(imageUri: string): Promise<Uint8Array> {
                 format: ImageManipulator.SaveFormat.PNG,
             },
         )
+
+        logger.debug("Image resized", {
+            originalUri: imageUri,
+            resizedUri: resized.uri,
+        })
 
         // Step 2: Read image file as base64
         const base64 = await FileSystem.readAsStringAsync(resized.uri, {
@@ -283,6 +303,11 @@ async function preprocessImage(imageUri: string): Promise<Uint8Array> {
         if (!image) {
             throw new Error("Failed to decode image with Skia")
         }
+
+        logger.debug("Image decoded with Skia", {
+            width: image.width(),
+            height: image.height(),
+        })
 
         // Step 4: Read pixels as RGBA (returns Uint8Array with 4 bytes per pixel)
         const pixels = image.readPixels()
@@ -305,9 +330,15 @@ async function preprocessImage(imageUri: string): Promise<Uint8Array> {
             // Skip alpha channel (pixels[rgbaIndex + 3])
         }
 
+        logger.debug("Image preprocessed successfully", { tensorSize })
         return rgbTensor
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
+        logger.error(
+            "Image preprocessing failed",
+            error instanceof Error ? error : new Error(message),
+            { imageUri },
+        )
         throw new Error(`Failed to preprocess image: ${message}`)
     }
 }
@@ -324,6 +355,7 @@ export async function runInference(
     modelPath: string,
 ): Promise<InferenceResult> {
     const startTime = Date.now()
+    logger.info("Starting inference", { imageUri, modelPath })
 
     try {
         // Step 1: Load model
@@ -333,25 +365,35 @@ export async function runInference(
         const inputTensor = await preprocessImage(imageUri)
 
         // Step 3: Run model inference
+        logger.debug("Running model inference")
         const outputs = model.runSync([inputTensor])
 
         // Step 4: Parse YOLO output
         // The model outputs raw detections in YOLO format
         const rawOutput = outputs[0] as Float32Array
+        logger.debug("Raw output received", { outputLength: rawOutput.length })
+
         const rawDetections = parseYolov8Output(
             rawOutput,
             IMAGE_SIZE,
             IMAGE_SIZE,
         )
+        logger.debug("YOLO output parsed", {
+            rawDetectionsCount: rawDetections.length,
+        })
 
         // Step 5: Apply NMS to remove overlapping boxes
         const nmsDetections = applyNMS(rawDetections, IOU_THRESHOLD)
+        logger.debug("NMS applied", { afterNMSCount: nmsDetections.length })
 
         // Step 6: Filter by confidence threshold
         const filteredDetections = filterByConfidence(
             nmsDetections,
             CONFIDENCE_THRESHOLD,
         )
+        logger.debug("Filtered by confidence", {
+            afterFilterCount: filteredDetections.length,
+        })
 
         // Step 7: Sort by confidence (descending)
         const sortedDetections = sortByConfidence(filteredDetections)
@@ -365,12 +407,23 @@ export async function runInference(
 
         const inferenceTimeMs = Date.now() - startTime
 
+        logger.info("Inference completed", {
+            inferenceTimeMs,
+            detectionsCount: detections.length,
+            imageUri,
+        })
+
         return {
             detections,
             inferenceTimeMs,
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error)
+        logger.error(
+            "Inference failed",
+            error instanceof Error ? error : new Error(message),
+            { imageUri },
+        )
         throw new Error(`Inference failed: ${message}`)
     }
 }

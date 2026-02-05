@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
 import { useNavigationState } from "@/lib/navigation"
+import { useLogger } from "@/lib/log"
 
 export default function CropScreen() {
     const router = useRouter()
@@ -17,19 +18,29 @@ export default function CropScreen() {
     }>()
     const [croppedImageUri, setCroppedImageUri] = useState<string | null>(null)
     const [isProcessing, setIsProcessing] = useState(true)
+    const { info, error: logError, debug } = useLogger()
 
     const screenWidth = Dimensions.get("window").width
     const imageSize = screenWidth - 32
 
     // Store original image URI and crop to square immediately on mount
     useEffect(() => {
-        if (!originalImageUri) return
+        info("CropScreen mounted", {
+            originalImageUri: originalImageUri?.substring(0, 50),
+        })
+
+        if (!originalImageUri) {
+            logError("No original image URI provided")
+            setIsProcessing(false)
+            return
+        }
 
         setOriginalImageUri(originalImageUri)
 
         const processCropImage = async () => {
             try {
                 setIsProcessing(true)
+                info("Starting image crop processing")
 
                 // Get actual image dimensions first
                 const { width, height } = await new Promise<{
@@ -42,6 +53,8 @@ export default function CropScreen() {
                         reject,
                     )
                 })
+
+                debug("Got image dimensions", { width, height })
 
                 const size = Math.min(width, height)
                 const cropX = (width - size) / 2
@@ -65,23 +78,45 @@ export default function CropScreen() {
                     },
                 )
 
+                info("Image cropped successfully", {
+                    croppedUri: result.uri.substring(0, 50),
+                })
                 setCroppedImageUri(result.uri)
                 setIsProcessing(false)
             } catch (err) {
-                console.error("Initial crop failed:", err)
+                const message = err instanceof Error ? err.message : String(err)
+                logError(
+                    "Initial crop failed",
+                    err instanceof Error ? err : new Error(message),
+                )
                 setIsProcessing(false)
             }
         }
 
         processCropImage()
+
+        return () => {
+            info("CropScreen unmounted")
+        }
     }, [originalImageUri, setOriginalImageUri])
 
     const handleCrop = () => {
-        if (!croppedImageUri) return
+        if (!croppedImageUri) {
+            logError("Cannot navigate - no cropped image URI")
+            return
+        }
+        info("Continue to preview pressed", {
+            croppedImageUri: croppedImageUri.substring(0, 50),
+        })
         router.push({
             pathname: "/preview",
             params: { imageUri: croppedImageUri, from: "crop" },
         })
+    }
+
+    const handleCancel = () => {
+        info("Crop cancelled")
+        router.push("/")
     }
 
     if (!croppedImageUri || isProcessing) {
@@ -182,7 +217,7 @@ export default function CropScreen() {
                 <Button
                     variant="outline"
                     className="flex-1 h-12"
-                    onPress={() => router.push("/")}
+                    onPress={handleCancel}
                     disabled={isProcessing}
                 >
                     <Text>Cancel</Text>

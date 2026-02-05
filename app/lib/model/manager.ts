@@ -22,6 +22,9 @@ import {
     modelFileExists,
     saveModelMetadata,
 } from "@/lib/model/storage"
+import { createComponentLogger, logTiming } from "@/lib/log"
+
+const logger = createComponentLogger("model/manager")
 
 /** GitHub repository for model releases */
 const GITHUB_REPO = "fishcareyolo/fishcareyolo"
@@ -64,6 +67,8 @@ function parseReleaseDateFromBody(body: string): string | null {
 /** Fetch release info from GitHub API */
 async function fetchReleaseInfo(channel: ModelChannel): Promise<GitHubRelease> {
     const url = getReleaseApiUrl(channel)
+    logger.info("Fetching release info", { channel, url })
+
     const response = await fetch(url, {
         headers: {
             Accept: "application/vnd.github.v3+json",
@@ -73,11 +78,15 @@ async function fetchReleaseInfo(channel: ModelChannel): Promise<GitHubRelease> {
     })
 
     if (!response.ok) {
-        throw new Error(
-            `Failed to fetch release info: ${response.status} ${response.statusText}`,
-        )
+        const error = `Failed to fetch release info: ${response.status} ${response.statusText}`
+        logger.error("GitHub API request failed", new Error(error), {
+            channel,
+            status: response.status,
+        })
+        throw new Error(error)
     }
 
+    logger.info("Release info fetched successfully", { channel })
     return response.json()
 }
 
@@ -85,10 +94,17 @@ async function fetchReleaseInfo(channel: ModelChannel): Promise<GitHubRelease> {
 export async function checkForUpdate(
     channel: ModelChannel,
 ): Promise<UpdateCheckResult> {
+    logger.info("Checking for model update", { channel })
+
     const localMetadata = await loadModelMetadata()
 
     // If no local model or different channel, we need to download
     if (!localMetadata || localMetadata.channel !== channel) {
+        logger.info("No local model or channel mismatch", {
+            hasLocalModel: !!localMetadata,
+            localChannel: localMetadata?.channel,
+            requestedChannel: channel,
+        })
         const release = await fetchReleaseInfo(channel)
         const newDate = parseReleaseDateFromBody(release.body)
         return {
@@ -105,6 +121,12 @@ export async function checkForUpdate(
     // Compare dates
     const hasUpdate = remoteDate !== localMetadata.updatedAt
 
+    logger.info("Update check completed", {
+        hasUpdate,
+        remoteDate,
+        localDate: localMetadata.updatedAt,
+    })
+
     return {
         hasUpdate,
         newDate: remoteDate,
@@ -120,10 +142,14 @@ export async function downloadModel(
     channel: ModelChannel,
     onProgress?: DownloadProgressCallback,
 ): Promise<ModelMetadata> {
+    logger.info("Starting model download", { channel })
+
     await ensureModelDirectory()
 
     const downloadUrl = getModelDownloadUrl(channel)
     const localPath = getModelPath(channel)
+
+    logger.info("Download configuration", { downloadUrl, localPath })
 
     // Fetch release info to get the updated date
     const release = await fetchReleaseInfo(channel)
@@ -135,6 +161,12 @@ export async function downloadModel(
         (asset: GitHubAsset) => asset.name === MODEL_FILENAME,
     )
     const expectedSize = modelAsset?.size ?? 0
+
+    logger.info("Model asset info", {
+        filename: MODEL_FILENAME,
+        expectedSize,
+        found: !!modelAsset,
+    })
 
     // Create download resumable for progress tracking
     const downloadResumable = FileSystem.createDownloadResumable(
@@ -151,11 +183,26 @@ export async function downloadModel(
         },
     )
 
-    const result = await downloadResumable.downloadAsync()
+    const result = await logTiming(
+        "model_download",
+        () => downloadResumable.downloadAsync(),
+        logger,
+    )
 
     if (!result || result.status !== 200) {
-        throw new Error(`Download failed with status: ${result?.status}`)
+        const error = `Download failed with status: ${result?.status}`
+        logger.error("Model download failed", new Error(error), {
+            status: result?.status,
+            channel,
+        })
+        throw new Error(error)
     }
+
+    logger.info("Model downloaded successfully", {
+        channel,
+        uri: result.uri,
+        status: result.status,
+    })
 
     // Create and save metadata
     const metadata: ModelMetadata = {
@@ -166,6 +213,7 @@ export async function downloadModel(
     }
 
     await saveModelMetadata(metadata)
+    logger.info("Model metadata saved", { channel, updatedAt })
 
     return metadata
 }
@@ -175,11 +223,18 @@ export async function initializeModel(
     onProgress?: DownloadProgressCallback,
 ): Promise<ModelState> {
     const channel = getModelChannel()
+    logger.info("Initializing model", { channel })
 
     try {
         // Check if we have a local model
         const hasLocalModel = await modelFileExists(channel)
         const localMetadata = await loadModelMetadata()
+
+        logger.info("Local model state", {
+            hasLocalModel,
+            hasMetadata: !!localMetadata,
+            localChannel: localMetadata?.channel,
+        })
 
         if (
             !hasLocalModel ||
@@ -187,7 +242,11 @@ export async function initializeModel(
             localMetadata.channel !== channel
         ) {
             // No local model or wrong channel - download
+            logger.info(
+                "Downloading model - no local model or channel mismatch",
+            )
             const metadata = await downloadModel(channel, onProgress)
+            logger.info("Model initialized with fresh download", { channel })
             return {
                 isReady: true,
                 isLoading: false,
@@ -199,10 +258,16 @@ export async function initializeModel(
 
         // Check for updates in background
         try {
+            logger.info("Checking for updates")
             const updateCheck = await checkForUpdate(channel)
             if (updateCheck.hasUpdate) {
+                logger.info("Update available, downloading", {
+                    newDate: updateCheck.newDate,
+                    currentDate: updateCheck.currentDate,
+                })
                 // Download update
                 const metadata = await downloadModel(channel, onProgress)
+                logger.info("Model updated successfully", { channel })
                 return {
                     isReady: true,
                     isLoading: false,
@@ -211,12 +276,19 @@ export async function initializeModel(
                     metadata,
                 }
             }
+            logger.info("No update available, using local model")
         } catch (updateError) {
             // Update check failed, but we have a local model - continue with it
-            console.warn("Update check failed, using local model:", updateError)
+            logger.warn("Update check failed, using local model", {
+                error:
+                    updateError instanceof Error
+                        ? updateError.message
+                        : String(updateError),
+            })
         }
 
         // Return existing model state
+        logger.info("Model initialized from local storage", { channel })
         return {
             isReady: true,
             isLoading: false,
@@ -226,6 +298,10 @@ export async function initializeModel(
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error"
+        logger.error(
+            "Model initialization failed",
+            error instanceof Error ? error : new Error(message),
+        )
         return {
             isReady: false,
             isLoading: false,
@@ -241,10 +317,13 @@ export async function forceUpdateModel(
     onProgress?: DownloadProgressCallback,
 ): Promise<ModelState> {
     const channel = getModelChannel()
+    logger.info("Force updating model", { channel })
 
     try {
         await clearModelMetadata()
+        logger.info("Model metadata cleared")
         const metadata = await downloadModel(channel, onProgress)
+        logger.info("Model force updated successfully", { channel })
         return {
             isReady: true,
             isLoading: false,
@@ -254,6 +333,10 @@ export async function forceUpdateModel(
         }
     } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error"
+        logger.error(
+            "Model force update failed",
+            error instanceof Error ? error : new Error(message),
+        )
         return {
             isReady: false,
             isLoading: false,
@@ -268,6 +351,11 @@ export async function forceUpdateModel(
 export async function getLocalModelPath(): Promise<string | null> {
     const channel = getModelChannel()
     const exists = await modelFileExists(channel)
-    if (!exists) return null
-    return getModelPath(channel)
+    if (!exists) {
+        logger.warn("Local model file not found", { channel })
+        return null
+    }
+    const path = getModelPath(channel)
+    logger.debug("Got local model path", { channel, path })
+    return path
 }

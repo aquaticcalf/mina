@@ -1,11 +1,12 @@
 import { useLocalSearchParams, useRouter } from "expo-router"
-import React from "react"
+import React, { useEffect } from "react"
 import { View } from "react-native"
 import { Image } from "expo-image"
 import { useNavigation } from "@react-navigation/native"
 import { Button } from "@/components/ui/button"
 import { Text } from "@/components/ui/text"
 import { useNavigationState } from "@/lib/navigation"
+import { useLogger } from "@/lib/log"
 
 export default function PreviewScreen() {
     const router = useRouter()
@@ -16,18 +17,47 @@ export default function PreviewScreen() {
         from?: string
     }>()
     const cameFromCrop = from === "crop"
+    const { info, debug } = useLogger()
 
-    React.useEffect(() => {
+    useEffect(() => {
+        info("PreviewScreen mounted", { imageUri, from, cameFromCrop })
+
         navigation.setOptions({
             tabBarStyle: { display: "none" },
         })
 
         return () => {
+            info("PreviewScreen unmounted")
             navigation.setOptions({
                 tabBarStyle: undefined,
             })
         }
-    }, [navigation])
+    }, [navigation, imageUri, from, cameFromCrop])
+
+    const handleBack = () => {
+        info("Preview back pressed", {
+            cameFromCrop,
+            hasOriginalImage: !!originalImageUri,
+        })
+        if (cameFromCrop && originalImageUri) {
+            router.replace({
+                pathname: "/crop",
+                params: { imageUri: originalImageUri },
+            })
+        } else {
+            router.push("/")
+        }
+    }
+
+    const handleAnalyze = () => {
+        info("Analyze fish pressed", { imageUri })
+        router.push({
+            pathname: "/results",
+            params: { imageUri },
+        })
+    }
+
+    debug("Rendering PreviewScreen", { imageUri: imageUri?.substring(0, 50) })
 
     return (
         <View className="flex-1 bg-black">
@@ -48,26 +78,11 @@ export default function PreviewScreen() {
                 <Button
                     variant="outline"
                     className="flex-1 h-12"
-                    onPress={() =>
-                        cameFromCrop && originalImageUri
-                            ? router.replace({
-                                  pathname: "/crop",
-                                  params: { imageUri: originalImageUri },
-                              })
-                            : router.push("/")
-                    }
+                    onPress={handleBack}
                 >
                     <Text>Back</Text>
                 </Button>
-                <Button
-                    className="flex-1 h-12"
-                    onPress={() => {
-                        router.push({
-                            pathname: "/results",
-                            params: { imageUri },
-                        })
-                    }}
-                >
+                <Button className="flex-1 h-12" onPress={handleAnalyze}>
                     <Text>Analyze Fish</Text>
                 </Button>
             </View>

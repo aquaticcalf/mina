@@ -12,26 +12,32 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { getDiseaseInfo } from "@/lib/model/disease/info"
 import type { DiseaseClass } from "@/lib/model/types"
+import { useLogger } from "@/lib/log"
 
 export default function DiseaseInfoScreen() {
     const router = useRouter()
     const navigation = useNavigation()
     const { id } = useLocalSearchParams<{ id: string }>()
     const diseaseClass = id as DiseaseClass
+    const { info, error: logError, debug } = useLogger()
 
     useEffect(() => {
+        info("DiseaseInfoScreen mounted", { diseaseClass })
+
         navigation.setOptions({
             tabBarStyle: { display: "none" },
         })
 
         return () => {
+            info("DiseaseInfoScreen unmounted")
             navigation.setOptions({
                 tabBarStyle: undefined,
             })
         }
-    }, [navigation])
+    }, [navigation, diseaseClass])
 
     if (!diseaseClass) {
+        logError("No disease class provided")
         return (
             <View className="flex-1 bg-background items-center justify-center p-4">
                 <Text className="text-xl font-bold text-foreground text-center mb-4">
@@ -45,6 +51,10 @@ export default function DiseaseInfoScreen() {
     }
 
     const diseaseInfo = getDiseaseInfo(diseaseClass)
+    debug("Loaded disease info", {
+        diseaseClass,
+        displayName: diseaseInfo.displayName,
+    })
 
     const getSeverityInfo = () => {
         switch (diseaseInfo.severity) {
@@ -88,6 +98,11 @@ export default function DiseaseInfoScreen() {
     }
 
     const severity = getSeverityInfo()
+
+    const handleBack = () => {
+        info("Back to results pressed")
+        router.back()
+    }
 
     return (
         <View className="flex-1 bg-background">
@@ -191,10 +206,7 @@ export default function DiseaseInfoScreen() {
             </ScrollView>
 
             <View className="px-5 pb-8 pt-4 border-t border-border bg-card">
-                <Button
-                    onPress={() => router.back()}
-                    className="w-full h-14 rounded-xl"
-                >
+                <Button onPress={handleBack} className="w-full h-14 rounded-xl">
                     <Text className="text-base font-bold">Back to Results</Text>
                 </Button>
             </View>

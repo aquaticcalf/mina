@@ -8,14 +8,17 @@ import { Text } from "@/components/ui/text"
 import { getHistoryItems } from "@/lib/history/storage"
 import type { HistoryItem } from "@/lib/history/types"
 import { getBoundingBoxColor, getDiseaseLabel } from "@/lib/model/disease/info"
+import { useLogger } from "@/lib/log"
 
 export default function HistoryScreen() {
     const router = useRouter()
     const [historyItems, setHistoryItems] = useState<HistoryItem[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const { info, error: logError, debug } = useLogger()
 
     useFocusEffect(
         useCallback(() => {
+            info("HistoryScreen focused, loading history")
             loadHistory()
         }, []),
     )
@@ -26,11 +29,28 @@ export default function HistoryScreen() {
             const items = await getHistoryItems()
             const sorted = items.sort((a, b) => b.timestamp - a.timestamp)
             setHistoryItems(sorted)
+            info("History loaded", { count: sorted.length })
         } catch (e) {
-            console.error("Failed to load history:", e)
+            const message = e instanceof Error ? e.message : String(e)
+            logError(
+                "Failed to load history",
+                e instanceof Error ? e : new Error(message),
+            )
         } finally {
             setIsLoading(false)
         }
+    }
+
+    const handleHistoryItemPress = (item: HistoryItem) => {
+        info("History item pressed", {
+            id: item.id,
+            timestamp: item.timestamp,
+            detectionsCount: item.results.detections.length,
+        })
+        router.push({
+            pathname: "/results",
+            params: { historyId: item.id },
+        })
     }
 
     const formatDate = (timestamp: number) => {
@@ -74,16 +94,12 @@ export default function HistoryScreen() {
 
     const renderItem = ({ item }: { item: HistoryItem }) => {
         const status = getStatusText(item)
+        debug("Rendering history item", { id: item.id, label: status.label })
 
         return (
             <Pressable
                 className="flex-row items-center bg-card rounded-xl p-4 mb-3 border-2 border-border active:border-primary"
-                onPress={() =>
-                    router.push({
-                        pathname: "/results",
-                        params: { historyId: item.id },
-                    })
-                }
+                onPress={() => handleHistoryItemPress(item)}
             >
                 <View className="relative">
                     <Image

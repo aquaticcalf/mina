@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
 import { useCamera } from "@/lib/camera"
+import { useLogger } from "@/lib/log"
 
 export default function HomeCameraScreen() {
     const router = useRouter()
@@ -35,8 +36,16 @@ export default function HomeCameraScreen() {
     const [isGalleryLoading, setIsGalleryLoading] = React.useState(false)
     const { cameraFacing, setCameraFacing, flashMode, setFlashMode } =
         useCamera()
+    const { info, error: logError } = useLogger()
 
     const canShowCamera = permission?.granted && isFocused
+
+    React.useEffect(() => {
+        info("HomeCameraScreen mounted")
+        return () => {
+            info("HomeCameraScreen unmounted")
+        }
+    }, [])
 
     const toggleFlash = () => {
         const modes: ("off" | "on")[] = ["off", "on"]
@@ -44,6 +53,7 @@ export default function HomeCameraScreen() {
         const nextIndex = (currentIndex + 1) % modes.length
         const newMode = modes[nextIndex]
         setFlashMode(newMode)
+        info("Flash mode toggled", { from: flashMode, to: newMode })
     }
 
     const getFlashIcon = () => {
@@ -72,6 +82,7 @@ export default function HomeCameraScreen() {
     }, [canShowCamera])
 
     const capture = async () => {
+        info("Capture initiated")
         try {
             const photo = await cameraRef.current?.takePictureAsync({
                 quality: 0.85,
@@ -81,6 +92,12 @@ export default function HomeCameraScreen() {
             })
 
             if (photo?.uri) {
+                info("Photo captured", {
+                    uri: photo.uri,
+                    width: photo.width,
+                    height: photo.height,
+                })
+
                 // Crop to square to match camera view
                 const { width, height } = photo
                 const size = Math.min(width, height)
@@ -108,15 +125,63 @@ export default function HomeCameraScreen() {
                     },
                 )
 
+                info("Image manipulated", {
+                    manipulatedUri: manipulatedImage.uri,
+                })
                 setLastCaptureUri(manipulatedImage.uri)
                 router.push({
                     pathname: "/preview",
                     params: { imageUri: manipulatedImage.uri },
                 })
+            } else {
+                logError("Photo capture returned no URI")
             }
         } catch (err) {
-            console.warn("capture failed", err)
+            const message = err instanceof Error ? err.message : String(err)
+            logError(
+                "Capture failed",
+                err instanceof Error ? err : new Error(message),
+            )
         }
+    }
+
+    const handleGalleryPick = async () => {
+        if (isGalleryLoading) return
+        setIsGalleryLoading(true)
+        info("Gallery picker initiated")
+
+        try {
+            const result = await ImagePicker.launchImageLibraryAsync({
+                mediaTypes: ["images"],
+                quality: 0.85,
+                base64: false,
+            })
+            if (!result.canceled && result.assets[0]) {
+                const uri = result.assets[0].uri
+                info("Image selected from gallery", { uri })
+                setLastCaptureUri(uri)
+                router.push({
+                    pathname: "/crop",
+                    params: { imageUri: uri },
+                })
+            } else {
+                info("Gallery picker cancelled")
+            }
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err)
+            logError(
+                "Gallery launch failed",
+                err instanceof Error ? err : new Error(message),
+            )
+        } finally {
+            setIsGalleryLoading(false)
+        }
+    }
+
+    const handleCameraFacingChange = () => {
+        const newFacing = cameraFacing === "back" ? "front" : "back"
+        setCameraFacing(newFacing)
+        info("Camera facing changed", { from: cameraFacing, to: newFacing })
     }
 
     if (!permission) {
@@ -187,7 +252,7 @@ export default function HomeCameraScreen() {
                     mode="picture"
                     flash={flashMode}
                     onCameraReady={() =>
-                        console.log("Camera ready with flash mode :", flashMode)
+                        info("Camera ready with flash mode", { flashMode })
                     }
                 />
             </View>
@@ -196,30 +261,7 @@ export default function HomeCameraScreen() {
                 <View className="flex-row items-center justify-between self-stretch">
                     <Pressable
                         className="h-12 w-12 items-center justify-center rounded-full bg-background/20"
-                        onPress={async () => {
-                            if (isGalleryLoading) return
-                            setIsGalleryLoading(true)
-                            try {
-                                const result =
-                                    await ImagePicker.launchImageLibraryAsync({
-                                        mediaTypes: ["images"],
-                                        quality: 0.85,
-                                        base64: false,
-                                    })
-                                if (!result.canceled && result.assets[0]) {
-                                    const uri = result.assets[0].uri
-                                    setLastCaptureUri(uri)
-                                    router.push({
-                                        pathname: "/crop",
-                                        params: { imageUri: uri },
-                                    })
-                                }
-                            } catch (err) {
-                                console.warn("gallery launch failed", err)
-                            } finally {
-                                setIsGalleryLoading(false)
-                            }
-                        }}
+                        onPress={handleGalleryPick}
                         disabled={isGalleryLoading}
                     >
                         <Icon
@@ -238,11 +280,7 @@ export default function HomeCameraScreen() {
 
                     <Pressable
                         className="h-12 w-12 items-center justify-center rounded-full bg-background/20"
-                        onPress={() =>
-                            setCameraFacing(
-                                cameraFacing === "back" ? "front" : "back",
-                            )
-                        }
+                        onPress={handleCameraFacingChange}
                     >
                         <Icon
                             as={RefreshCcwIcon}

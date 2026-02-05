@@ -12,6 +12,7 @@ import { useModel } from "@/lib/model"
 import type { InferenceResult } from "@/lib/model/inference"
 import { saveHistoryItem, getHistoryItem } from "@/lib/history/storage"
 import { getBoundingBoxColor, getDiseaseLabel } from "@/lib/model/disease/info"
+import { useLogger } from "@/lib/log"
 
 export default function ResultsScreen() {
     const router = useRouter()
@@ -22,6 +23,7 @@ export default function ResultsScreen() {
         historyId?: string
     }>()
     const { runInference, isReady } = useModel()
+    const { info, error: logError, debug } = useLogger()
 
     const [isAnalyzing, setIsAnalyzing] = useState(true)
     const [results, setResults] = useState<InferenceResult | null>(null)
@@ -32,30 +34,52 @@ export default function ResultsScreen() {
     const savedRef = useRef(false)
 
     useEffect(() => {
+        info("ResultsScreen mounted", {
+            hasImageUri: !!imageUri,
+            hasHistoryId: !!historyId,
+            isReady,
+        })
+
         navigation.setOptions({
             tabBarStyle: { display: "none" },
         })
 
         return () => {
+            info("ResultsScreen unmounted")
             navigation.setOptions({
                 tabBarStyle: undefined,
             })
         }
-    }, [navigation])
+    }, [navigation, imageUri, historyId, isReady])
 
     useEffect(() => {
         async function load() {
             if (historyId) {
+                info("Loading from history", { historyId })
                 try {
                     setIsAnalyzing(true)
                     const item = await getHistoryItem(historyId)
                     if (item) {
+                        info("History item loaded", {
+                            historyId,
+                            detectionsCount: item.results.detections.length,
+                        })
                         setResults(item.results)
                         setProcessedImageUri(item.processedImageUri)
                     } else {
+                        logError(
+                            "History item not found",
+                            new Error(`No item with id: ${historyId}`),
+                        )
                         setError("Could not find this scan")
                     }
                 } catch (e) {
+                    const message = e instanceof Error ? e.message : String(e)
+                    logError(
+                        "Failed to load history item",
+                        e instanceof Error ? e : new Error(message),
+                        { historyId },
+                    )
                     setError("Could not load this scan")
                 } finally {
                     setIsAnalyzing(false)
@@ -64,12 +88,20 @@ export default function ResultsScreen() {
             }
 
             if (!imageUri) {
+                logError(
+                    "No image URI provided",
+                    new Error("imageUri is undefined"),
+                )
                 setError("No photo provided")
                 setIsAnalyzing(false)
                 return
             }
 
             if (!isReady) {
+                logError(
+                    "Model not ready for inference",
+                    new Error("Model is not ready"),
+                )
                 setError("App is not ready. Please try again.")
                 setIsAnalyzing(false)
                 return
@@ -79,19 +111,28 @@ export default function ResultsScreen() {
                 setIsAnalyzing(true)
                 setError(null)
 
+                info("Starting inference", { imageUri })
                 const result = await runInference(imageUri)
 
                 if (!result) {
+                    logError("Inference returned null")
                     setError("Could not analyze this photo")
                     setIsAnalyzing(false)
                     return
                 }
 
+                info("Inference completed", {
+                    detectionsCount: result.detections.length,
+                    inferenceTimeMs: result.inferenceTimeMs,
+                })
                 setResults(result)
 
                 let finalProcessedUri = imageUri
 
                 if (result.detections.length > 0) {
+                    info("Processing image with overlays", {
+                        detectionsCount: result.detections.length,
+                    })
                     try {
                         const processedUri = await processImageWithOverlays(
                             imageUri,
@@ -99,29 +140,48 @@ export default function ResultsScreen() {
                         )
                         setProcessedImageUri(processedUri)
                         finalProcessedUri = processedUri
+                        info("Image processed with overlays", { processedUri })
                     } catch (e) {
-                        console.error("Failed to process image:", e)
+                        const message =
+                            e instanceof Error ? e.message : String(e)
+                        logError(
+                            "Failed to process image",
+                            e instanceof Error ? e : new Error(message),
+                        )
                         setProcessedImageUri(imageUri)
                     }
                 } else {
+                    info("No detections, using original image")
                     setProcessedImageUri(imageUri)
                 }
 
                 if (!savedRef.current) {
                     savedRef.current = true
                     try {
+                        info("Saving to history")
                         await saveHistoryItem({
                             timestamp: Date.now(),
                             originalImageUri: imageUri,
                             processedImageUri: finalProcessedUri,
                             results: result,
                         })
+                        info("Saved to history successfully")
                     } catch (e) {
-                        console.error("Failed to save:", e)
+                        const message =
+                            e instanceof Error ? e.message : String(e)
+                        logError(
+                            "Failed to save to history",
+                            e instanceof Error ? e : new Error(message),
+                        )
                     }
                 }
             } catch (err) {
                 const message = err instanceof Error ? err.message : String(err)
+                logError(
+                    "Analysis failed",
+                    err instanceof Error ? err : new Error(message),
+                    { imageUri },
+                )
                 setError(`Analysis failed: ${message}`)
             } finally {
                 setIsAnalyzing(false)
@@ -135,6 +195,11 @@ export default function ResultsScreen() {
         uri: string,
         result: InferenceResult,
     ): Promise<string> => {
+        debug("Processing image with overlays", {
+            uri: uri.substring(0, 50),
+            detectionsCount: result.detections.length,
+        })
+
         const base64 = await FileSystem.readAsStringAsync(uri, {
             encoding: "base64",
         })
@@ -220,7 +285,27 @@ export default function ResultsScreen() {
             encoding: "base64",
         })
 
+        debug("Image with overlays saved", { resultUri })
+
         return resultUri
+    }
+
+    const handleTryAgain = () => {
+        info("Try again pressed")
+        router.push("/")
+    }
+
+    const handleCheckAnother = () => {
+        info("Check another fish pressed")
+        router.push("/")
+    }
+
+    const handleLearnMore = (diseaseClass: string) => {
+        info("Learn more pressed", { diseaseClass })
+        router.push({
+            pathname: "/disease/[id]",
+            params: { id: diseaseClass },
+        })
     }
 
     return (
@@ -272,10 +357,7 @@ export default function ResultsScreen() {
                         <Text className="text-muted-foreground text-center">
                             {error}
                         </Text>
-                        <Button
-                            className="mt-6 px-6"
-                            onPress={() => router.push("/")}
-                        >
+                        <Button className="mt-6 px-6" onPress={handleTryAgain}>
                             <Text>Try Again</Text>
                         </Button>
                     </View>
@@ -348,14 +430,11 @@ export default function ResultsScreen() {
                                         <Button
                                             variant="outline"
                                             className="mt-2"
-                                            onPress={() => {
-                                                router.push({
-                                                    pathname: "/disease/[id]",
-                                                    params: {
-                                                        id: detection.diseaseClass,
-                                                    },
-                                                })
-                                            }}
+                                            onPress={() =>
+                                                handleLearnMore(
+                                                    detection.diseaseClass,
+                                                )
+                                            }
                                         >
                                             <Text>Learn More & Treatment</Text>
                                         </Button>
@@ -370,7 +449,7 @@ export default function ResultsScreen() {
             <View className="absolute bottom-0 left-0 right-0 px-5 pb-8 pt-4 bg-gradient-to-t from-background to-transparent">
                 <Button
                     className="w-full h-14 rounded-xl"
-                    onPress={() => router.push("/")}
+                    onPress={handleCheckAnother}
                 >
                     <Text className="text-base font-bold">
                         Check Another Fish
