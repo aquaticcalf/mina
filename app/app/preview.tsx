@@ -1,6 +1,7 @@
 import { useLocalSearchParams, useRouter } from "expo-router"
 import React from "react"
-import { Image, View } from "react-native"
+import { View } from "react-native"
+import { Image } from "expo-image"
 import { useNavigation } from "@react-navigation/native"
 import { Button } from "@/components/ui/button"
 import { Text } from "@/components/ui/text"
@@ -38,7 +39,8 @@ export default function PreviewScreen() {
                 <Image
                     source={{ uri: imageUri }}
                     className="w-full h-full"
-                    resizeMode="contain"
+                    contentFit="contain"
+                    transition={200}
                 />
             </View>
 

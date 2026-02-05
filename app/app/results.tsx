@@ -1,6 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router"
 import React, { useEffect, useState, useRef } from "react"
-import { ActivityIndicator, Image, ScrollView, View } from "react-native"
+import { ActivityIndicator, ScrollView, View } from "react-native"
+import { useSafeAreaInsets } from "react-native-safe-area-context"
+import { Image } from "expo-image"
 import { useNavigation } from "@react-navigation/native"
 import { Skia, matchFont, ImageFormat } from "@shopify/react-native-skia"
 import * as FileSystem from "expo-file-system/legacy"
@@ -14,6 +16,7 @@ import { getBoundingBoxColor, getDiseaseLabel } from "@/lib/model/disease/info"
 export default function ResultsScreen() {
     const router = useRouter()
     const navigation = useNavigation()
+    const insets = useSafeAreaInsets()
     const { imageUri, historyId } = useLocalSearchParams<{
         imageUri?: string
         historyId?: string
@@ -250,13 +253,21 @@ export default function ResultsScreen() {
                 <Text className="text-white font-medium">Analysis Results</Text>
             </View>
 
-            <ScrollView className="flex-1 pt-20">
+            <ScrollView
+                className="flex-1"
+                contentContainerStyle={{
+                    paddingTop: insets.top + 60,
+                    paddingBottom: insets.bottom + 80,
+                }}
+                showsVerticalScrollIndicator={false}
+            >
                 {(processedImageUri || imageUri) && (
                     <View className="items-center justify-center px-4 mb-6">
                         <Image
                             source={{ uri: processedImageUri || imageUri }}
                             className="w-full h-64 rounded-lg"
-                            resizeMode="contain"
+                            contentFit="contain"
+                            transition={200}
                         />
                     </View>
                 )}

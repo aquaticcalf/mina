@@ -1,7 +1,8 @@
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { CheckIcon } from "lucide-react-native"
 import React, { useState, useEffect } from "react"
-import { Image, Pressable, View, Dimensions } from "react-native"
+import { Pressable, View, Dimensions } from "react-native"
+import { Image } from "expo-image"
 import * as ImageManipulator from "expo-image-manipulator"
 import { Button } from "@/components/ui/button"
 import { Icon } from "@/components/ui/icon"
@@ -30,32 +31,21 @@ export default function CropScreen() {
             try {
                 setIsProcessing(true)
 
-                // Get dimensions
-                const { width, height } = await new Promise<{
-                    width: number
-                    height: number
-                }>((resolve, reject) => {
-                    Image.getSize(
-                        originalImageUri,
-                        (w, h) => resolve({ width: w, height: h }),
-                        reject,
-                    )
-                })
-
-                const size = Math.min(width, height)
-                const cropX = (width - size) / 2
-                const cropY = (height - size) / 2
-
-                // Crop immediately
                 const result = await ImageManipulator.manipulateAsync(
                     originalImageUri,
                     [
                         {
                             crop: {
-                                originX: Math.round(cropX),
-                                originY: Math.round(cropY),
-                                width: size,
-                                height: size,
+                                originX: 0,
+                                originY: 0,
+                                width: Math.min(
+                                    Dimensions.get("window").width - 32,
+                                    Dimensions.get("window").width - 32,
+                                ),
+                                height: Math.min(
+                                    Dimensions.get("window").width - 32,
+                                    Dimensions.get("window").width - 32,
+                                ),
                             },
                         },
                     ],
@@ -122,7 +112,8 @@ export default function CropScreen() {
                             width: imageSize,
                             height: imageSize,
                         }}
-                        resizeMode="contain"
+                        contentFit="contain"
+                        transition={200}
                     />
 
                     {/* Grid overlay */}

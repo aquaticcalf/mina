@@ -1,12 +1,7 @@
 import { useFocusEffect, useRouter } from "expo-router"
 import React, { useCallback, useState } from "react"
-import {
-    FlatList,
-    Image,
-    TouchableOpacity,
-    View,
-    ActivityIndicator,
-} from "react-native"
+import { FlatList, Pressable, View, ActivityIndicator } from "react-native"
+import { Image } from "expo-image"
 import { ClockIcon, ChevronRightIcon } from "lucide-react-native"
 import { Icon } from "@/components/ui/icon"
 import { Text } from "@/components/ui/text"
@@ -63,7 +58,7 @@ export default function HistoryScreen() {
         const primary = getPrimaryDetection(item)
 
         return (
-            <TouchableOpacity
+            <Pressable
                 className="flex-row items-center bg-card border border-border rounded-xl p-3 mb-3"
                 onPress={() =>
                     router.push({
@@ -75,7 +70,8 @@ export default function HistoryScreen() {
                 <Image
                     source={{ uri: item.processedImageUri }}
                     className="w-16 h-16 rounded-lg bg-muted"
-                    resizeMode="cover"
+                    contentFit="cover"
+                    transition={200}
                 />
                 <View className="flex-1 ml-3 justify-center">
                     <View className="flex-row justify-between items-center mb-1">
@@ -107,7 +103,7 @@ export default function HistoryScreen() {
                     size={20}
                     className="text-muted-foreground ml-2"
                 />
-            </TouchableOpacity>
+            </Pressable>
         )
     }
 
