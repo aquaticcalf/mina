@@ -6,7 +6,51 @@ interface CreateLoggerOptions {
     requestId?: string
 }
 
+// Check if afterlog is configured by checking if it has an adapter
+function isAfterlogConfigured(): boolean {
+    try {
+        // Try to create a builder - this will throw if not configured
+        afterlog.createBuilder({})
+        return true
+    } catch {
+        return false
+    }
+}
+
+// Fallback logger that logs to console when afterlog is not configured
+function createFallbackLogger(component?: string): Builder {
+    const prefix = component ? `[${component}]` : "[log]"
+
+    return {
+        data: () => createFallbackLogger(component),
+        debug: (message: string, data?: Record<string, unknown>) => {
+            console.debug(prefix, message, data)
+        },
+        error: (error: Error, data?: Record<string, unknown>) => {
+            console.error(prefix, error, data)
+        },
+        info: (message: string, data?: Record<string, unknown>) => {
+            console.info(prefix, message, data)
+        },
+        timing: async <T>(
+            label: string,
+            fn: () => T | Promise<T>,
+        ): Promise<T> => {
+            const start = Date.now()
+            const result = await fn()
+            console.info(prefix, `${label} took ${Date.now() - start}ms`)
+            return result
+        },
+        warn: (message: string, data?: Record<string, unknown>) => {
+            console.warn(prefix, message, data)
+        },
+    } as unknown as Builder
+}
+
 function createLoggerBase(init?: Record<string, unknown>): Builder {
+    if (!isAfterlogConfigured()) {
+        return createFallbackLogger(init?.component as string)
+    }
     return afterlog.createBuilder(init)
 }
 
