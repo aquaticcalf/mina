@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg", "*.wasm"],
+      includeAssets: ["favicon.ico", "apple-touch-icon.png", "masked-icon.svg"],
       manifest: {
         name: "mina",
         short_name: "mina",
@@ -31,11 +31,11 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,wasm}"],
+        maximumFileSizeToCacheInBytes: 30 * 1024 * 1024,
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2,wasm,onnx}"],
         runtimeCaching: [
           {
-            urlPattern:
-              /^https:\/\/github\.com\/fishcareyolo\/fishcareyolo\/releases\/download\/prod\/.*\.onnx$/,
+            urlPattern: /\/model\/.*\.onnx$/,
             handler: "CacheFirst",
             options: {
               cacheName: "onnx-models",
@@ -56,5 +56,10 @@ export default defineConfig({
     alias: {
       "@": path.resolve(__dirname, "./app"),
     },
+  },
+  // Exclude onnxruntime-web from Vite's dependency optimization
+  // This preserves import.meta.url behavior needed for WASM file loading
+  optimizeDeps: {
+    exclude: ["onnxruntime-web"],
   },
 })

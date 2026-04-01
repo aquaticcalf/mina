@@ -46,13 +46,17 @@ async function createTestInput(timestamp: number): Promise<HistoryItemInput> {
     processedImage: new Blob([new Uint8Array([6, 7, 8, 9, 10])], {
       type: "image/png",
     }),
-    results: [
-      {
-        class: "bacterial_infection",
-        confidence: 0.85,
-        bbox: { x: 0.1, y: 0.1, width: 0.3, height: 0.3 },
-      },
-    ],
+    results: {
+      detections: [
+        {
+          id: "det-1",
+          diseaseClass: "bacterial_infection",
+          confidence: 0.85,
+          boundingBox: { x: 0.1, y: 0.1, width: 0.3, height: 0.3 },
+        },
+      ],
+      inferenceTimeMs: 180,
+    },
   }
 }
 
