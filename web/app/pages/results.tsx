@@ -6,12 +6,16 @@ import { ResultsView } from "@/components/detection/results-view"
 import { Button } from "@/components/ui/button"
 
 export default function ResultsPage() {
-  const { currentResult } = useDetectionContext()
+  const { currentOutcome } = useDetectionContext()
   const { capturedImageUrl } = useCameraContext()
   const navigate = useNavigate()
 
+  // Narrow the union — this page only renders for the detections outcome
+  const result =
+    currentOutcome?.kind === "detections" ? currentOutcome.result : null
+
   // Premium Empty/Fallback State
-  if (!currentResult || !capturedImageUrl) {
+  if (!result || !capturedImageUrl) {
     return (
       <div className="flex h-screen w-full flex-col items-center justify-center bg-background p-6 transition-colors duration-300">
         <div className="flex w-full max-w-[320px] flex-col items-center gap-6 rounded-[2rem] border border-border bg-card p-10 text-center shadow-lg">
@@ -62,9 +66,9 @@ export default function ResultsPage() {
         </div>
       </header>
 
-      {/* Content Area (Letting ResultsView handle its own internal layout, but with a sleek wrapper) */}
+      {/* Content Area */}
       <main className="flex-1 w-full relative">
-        <ResultsView imageUrl={capturedImageUrl} result={currentResult} />
+        <ResultsView imageUrl={capturedImageUrl} result={result} />
       </main>
     </div>
   )

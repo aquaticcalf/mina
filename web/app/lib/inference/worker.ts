@@ -1,9 +1,14 @@
 import * as ort from "onnxruntime-web"
 
+// In development, Vite natively resolves the ONNX modules from node_modules.
+// In production, vite-plugin-static-copy copies the WASM files to the build root (/).
+if (import.meta.env.PROD) {
+  ort.env.wasm.wasmPaths = "/"
+}
 export interface InferenceRequest {
   id: string
   type: "load" | "run" | "release"
-  data?: number[] | string
+  data?: number[] | string | { url: string; force?: boolean }
   dims?: number[]
 }
 
@@ -256,20 +261,32 @@ function postprocessOutput(output: Float32Array, dims: number[]): InferenceResul
   return results
 }
 
-async function loadModel(modelUrl: string): Promise<void> {
-  console.log("[Worker] Starting model load from:", modelUrl)
+async function loadModel(modelUrl: string, forceUpdate: boolean = false): Promise<void> {
+  console.log(`[Worker] Starting model load from: ${modelUrl}${forceUpdate ? " (Force Update)" : ""}`)
   ctx.postMessage({ type: "loading", progress: 0 } as InferenceResponse)
 
   try {
-    console.log("[Worker] Downloading model...")
     ctx.postMessage({ type: "loading", progress: 10 } as InferenceResponse)
 
-    const response = await fetch(modelUrl, { credentials: "same-origin" })
+    const cache = await caches.open("mina-models-v1")
+    let response = await cache.match(modelUrl)
 
-    if (!response.ok) {
-      throw new Error(
-        `Model download failed (${response.status} ${response.statusText}) from ${modelUrl}`,
-      )
+    if (!response || forceUpdate) {
+      console.log("[Worker] Downloading model from network...")
+      response = await fetch(modelUrl, {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" }
+      })
+
+      if (!response.ok) {
+        throw new Error(
+          `Model download failed (${response.status} ${response.statusText}) from ${modelUrl}`,
+        )
+      }
+
+      await cache.put(modelUrl, response.clone())
+    } else {
+      console.log("[Worker] Loading model from browser cache...")
     }
 
     const modelBuffer = await response.arrayBuffer()
@@ -362,7 +379,12 @@ ctx.onmessage = async (event: MessageEvent<InferenceRequest>) => {
   console.log("[Worker] Received message:", type, "id:", id)
 
   if (type === "load") {
-    await loadModel(data as unknown as string)
+    if (typeof data === "string") {
+      await loadModel(data)
+    } else {
+      const payload = data as { url: string; force?: boolean }
+      await loadModel(payload.url, payload.force)
+    }
   } else if (type === "run") {
     console.log("[Worker] Creating ImageData from", (data as number[]).length, "bytes")
     const imageData = new ImageData(new Uint8ClampedArray(data as number[]), IMAGE_SIZE, IMAGE_SIZE)

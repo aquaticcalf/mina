@@ -39,11 +39,22 @@ export interface Detection {
   boundingBox: BoundingBox
 }
 
-/** Inference result from model */
+/** Inference result from disease model */
 export interface InferenceResult {
   detections: Detection[]
   inferenceTimeMs: number
 }
+
+/**
+ * Discriminated union representing the full outcome of an analysis run.
+ *
+ * - `no_fish`: the gate model rejected the image (not a fish). No disease
+ *   inference was run and nothing was saved to history.
+ * - `detections`: the gate passed and the disease model produced results.
+ */
+export type AnalysisOutcome =
+  | { kind: "no_fish"; gateConfidence: number }
+  | { kind: "detections"; result: InferenceResult }
 
 /** Disease information with symptoms and treatments */
 export interface DiseaseInfo {

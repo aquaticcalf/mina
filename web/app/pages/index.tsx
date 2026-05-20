@@ -2,6 +2,10 @@ import { useRef, useEffect, useState, useCallback } from "react"
 import { useNavigate } from "react-router-dom"
 import { Camera, Image, AlertCircle, RefreshCw } from "lucide-react"
 import { useCameraContext } from "@/lib/camera/context"
+import { useModelLoader } from "@/lib/inference/model-loader-context"
+import { usePwaInstall } from "@/hooks/use-pwa-install"
+import { ModelDownloadBanner } from "@/components/layout/model-download-banner"
+import { PwaInstallBanner } from "@/components/layout/pwa-install-banner"
 import { cn } from "@/lib/utils"
 
 export default function CameraPage() {
@@ -12,6 +16,9 @@ export default function CameraPage() {
 
   const [permission, setPermission] = useState<"pending" | "granted" | "denied">("pending")
   const [cameraError, setCameraError] = useState<string | null>(null)
+
+  const { modelsReady } = useModelLoader()
+  const { canInstall, promptInstall, dismissInstall } = usePwaInstall()
 
   const {
     setCapturedImage,
@@ -255,6 +262,9 @@ export default function CameraPage() {
         </div>
       )}
 
+      {/* Model Download Progress Overlay */}
+      <ModelDownloadBanner />
+
       {/* Modern Floating Hint */}
       <div className="pointer-events-none absolute bottom-[calc(140px+env(safe-area-inset-bottom))] left-0 right-0 z-30 flex justify-center px-4 md:bottom-[160px]">
         <div className="rounded-full border border-border/50 bg-background/80 px-5 py-2.5 backdrop-blur-md shadow-xl">
@@ -264,12 +274,18 @@ export default function CameraPage() {
         </div>
       </div>
 
+      {/* PWA Install Overlays (Deferred) */}
+      {modelsReady && canInstall && (
+        <PwaInstallBanner onInstall={promptInstall} onDismiss={dismissInstall} />
+      )}
+
       {/* Controls Bar */}
       <div className="absolute bottom-0 left-0 right-0 z-20 flex items-center justify-between bg-transparent px-8 pb-[calc(2rem+env(safe-area-inset-bottom))] pt-24 md:px-16">
         {/* Gallery Button */}
         <button
-          className="group flex flex-col items-center justify-center gap-2 transition-transform hover:scale-105 active:scale-95"
+          className="group flex flex-col items-center justify-center gap-2 transition-transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:pointer-events-none disabled:cursor-not-allowed"
           onClick={() => fileInputRef.current?.click()}
+          disabled={!modelsReady}
           aria-label="Choose from gallery"
         >
           <div className="flex size-14 items-center justify-center rounded-2xl bg-white/60 text-black shadow-xl transition-colors group-hover:bg-white/80">
@@ -281,7 +297,7 @@ export default function CameraPage() {
         <button
           className="group flex size-[80px] items-center justify-center rounded-full border-[4px] border-white/40 shadow-xl transition-all hover:border-white/70 active:scale-95 disabled:cursor-not-allowed disabled:opacity-30 md:size-[92px]"
           onClick={handleCapture}
-          disabled={permission !== "granted"}
+          disabled={permission !== "granted" || !modelsReady}
           aria-label="Capture photo for analysis"
         >
           <span

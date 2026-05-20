@@ -38,3 +38,17 @@ TEST_DATA_DIR: Path = MODEL_DIR / "test_data"
 
 # Supported image extensions
 IMAGE_EXTENSIONS: set[str] = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
+
+# ─── Fish gate classifier constants ──────────────────────────────────────────
+GATE_IMAGE_SIZE: int = 224          # MobileNetV3-Small expected input resolution
+GATE_THRESHOLD: float = 0.6         # sigmoid output > threshold → classify as fish
+GATE_CLASSES: list[str] = ["fish", "no_fish"]  # alphabetical = ImageFolder order
+
+GATE_RUNS_DIR: Path = MODEL_DIR / "runs" / "gate"
+GATE_DATA_DIR: Path = MODEL_DIR / "gate_data"
+
+# ImageNet normalisation applied during MobileNetV3-Small pre-training.
+# These MUST match the values hard-coded in the JS gate worker (gate-worker.ts).
+IMAGENET_MEAN: list[float] = [0.485, 0.456, 0.406]
+IMAGENET_STD: list[float] = [0.229, 0.224, 0.225]
+

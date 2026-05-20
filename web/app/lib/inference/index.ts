@@ -1,5 +1,7 @@
 export { inferenceService } from "./service"
 export type { InferenceState, InferenceStatus, StatusCallback } from "./service"
+export { gateService } from "./gate-service"
+export type { GateResult, GateState, GateStatus, GateStatusCallback } from "./gate-service"
 export type { InferenceResult } from "./worker"
 export { transformResults } from "./transform"
 export type { RawInferenceResult } from "./transform"

@@ -14,6 +14,10 @@ dependencies = [
     "scipy==1.13.1",
     "tensorflow==2.18.0",
     "pillow>=10.0.0",
+    "kaggle>=1.6.0",
+    "onnxruntime>=1.17.0",
+    "onnxscript>=0.1.0",
+    "onnx>=1.14.0,<1.17.0",
     "pyyaml>=6.0.0",
 ]
 
@@ -24,6 +28,11 @@ mina-evaluate = "cli.evaluate:main"
 mina-infer = "cli.infer:main"
 mina-download = "cli.download:main"
 mina-tune = "cli.tune:main"
+# Gate classifier
+gate-download  = "cli.gate_download:main"
+gate-train     = "cli.gate_train:main"
+gate-export    = "cli.gate_export:main"
+gate-evaluate  = "cli.gate_evaluate:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

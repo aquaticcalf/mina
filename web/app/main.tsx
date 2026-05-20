@@ -6,6 +6,7 @@ import App from "./routes"
 import { ThemeProvider } from "@/components/theme-provider"
 import { CameraProvider } from "@/lib/camera/context"
 import { DetectionProvider } from "@/lib/detection/context"
+import { ModelLoaderProvider } from "@/lib/inference/model-loader-context"
 import { initHistoryDB } from "@/lib/history"
 
 // Initialize IndexedDB for history storage
@@ -18,7 +19,9 @@ createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <CameraProvider>
         <DetectionProvider>
-          <App />
+          <ModelLoaderProvider>
+            <App />
+          </ModelLoaderProvider>
         </DetectionProvider>
       </CameraProvider>
     </ThemeProvider>

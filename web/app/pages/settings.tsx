@@ -1,7 +1,10 @@
 import { useState, useEffect } from "react"
-import { Monitor, Moon, Sun, Trash2 } from "lucide-react"
+import { Monitor, Moon, Sun, Trash2, CheckCircle2, Loader2, AlertCircle, Circle, Download, RefreshCw } from "lucide-react"
 import { useTheme } from "@/components/theme-provider"
+import { usePwaInstall } from "@/hooks/use-pwa-install"
 import { clearHistory, getHistoryItems } from "@/lib/history"
+import { inferenceService, gateService } from "@/lib/inference"
+import type { InferenceStatus, GateStatus } from "@/lib/inference"
 
 type Theme = "light" | "dark" | "system"
 
@@ -15,14 +18,70 @@ const THEME_OPTIONS: {
   { value: "system", label: "System", icon: Monitor },
 ]
 
+type ModelStatus = InferenceStatus | GateStatus
+
+function ModelStatusBadge({ status }: { status: ModelStatus }) {
+  if (status === "ready") {
+    return (
+      <span className="flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400">
+        <CheckCircle2 size={12} aria-hidden="true" />
+        Cached
+      </span>
+    )
+  }
+  if (status === "loading") {
+    return (
+      <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-3 py-1 text-xs font-medium text-muted-foreground">
+        <Loader2 size={12} className="animate-spin" aria-hidden="true" />
+        Loading…
+      </span>
+    )
+  }
+  if (status === "error") {
+    return (
+      <span className="flex items-center gap-1.5 rounded-full border border-destructive/20 bg-destructive/10 px-3 py-1 text-xs font-medium text-destructive">
+        <AlertCircle size={12} aria-hidden="true" />
+        Error
+      </span>
+    )
+  }
+  // idle / downloading
+  return (
+    <span className="flex items-center gap-1.5 rounded-full border border-border bg-muted/30 px-3 py-1 text-xs font-medium text-muted-foreground/60">
+      <Circle size={12} aria-hidden="true" />
+      Not loaded
+    </span>
+  )
+}
+
 export default function SettingsPage() {
   const { theme, setTheme } = useTheme()
+  const { isInstallAvailable, promptInstall } = usePwaInstall()
   const [historyCount, setHistoryCount] = useState(0)
+  const [diseaseModelStatus, setDiseaseModelStatus] = useState<ModelStatus>(
+    inferenceService.getStatus().status,
+  )
+  const [gateModelStatus, setGateModelStatus] = useState<ModelStatus>(
+    gateService.getStatus().status,
+  )
 
   useEffect(() => {
     getHistoryItems()
       .then((items) => setHistoryCount(items.length))
       .catch((err) => console.error("Failed to load history count:", err))
+
+    // Subscribe to model status updates
+    const unsubDisease = inferenceService.onStatusChange((state) =>
+      setDiseaseModelStatus(state.status),
+    )
+    const unsubGate = gateService.onStatusChange((state) =>
+      setGateModelStatus(state.status),
+    )
+
+    return () => {
+      unsubDisease()
+      unsubGate()
+    }
   }, [])
 
   const handleClearHistory = async () => {
@@ -115,6 +174,77 @@ export default function SettingsPage() {
           </div>
         </section>
 
+        {/* Models Section */}
+        <section className="flex flex-col gap-3" aria-labelledby="models-heading">
+          <h2
+            className="pl-4 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+            id="models-heading"
+          >
+            AI Models
+          </h2>
+
+          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-colors duration-300">
+            {/* Gate model row */}
+            <div className="flex items-center justify-between gap-4 p-6 md:px-8">
+              <div className="flex-1 min-w-0">
+                <p className="mb-1 text-base font-semibold tracking-wide text-card-foreground">
+                  Fish Gate
+                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Validates that submitted images contain a fish · ~2.5 MB
+                </p>
+              </div>
+              <ModelStatusBadge status={gateModelStatus} />
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-full bg-border" aria-hidden="true" />
+
+            {/* Disease model row */}
+            <div className="flex items-center justify-between gap-4 p-6 md:px-8">
+              <div className="flex-1 min-w-0">
+                <p className="mb-1 text-base font-semibold tracking-wide text-card-foreground">
+                  Disease Detector
+                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Identifies fish diseases from images · ~12 MB
+                </p>
+              </div>
+              <ModelStatusBadge status={diseaseModelStatus} />
+            </div>
+
+            {/* Divider */}
+            <div className="h-px w-full bg-border" aria-hidden="true" />
+
+            {/* Force Update models row */}
+            <div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:px-8 bg-muted/10">
+              <div className="flex-1 min-w-0">
+                <p className="mb-1 text-base font-semibold tracking-wide text-card-foreground">
+                  Update Models
+                </p>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  Fetch the latest AI models from the server.
+                </p>
+              </div>
+
+              <button
+                onClick={() => {
+                  gateService.serve(true);
+                  inferenceService.serve(true);
+                }}
+                disabled={diseaseModelStatus === "loading" || gateModelStatus === "loading"}
+                className="group flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background px-6 text-sm font-medium tracking-wide text-foreground shadow-sm transition-all hover:bg-muted active:scale-95 disabled:pointer-events-none disabled:opacity-50 md:w-auto"
+              >
+                <RefreshCw
+                  size={18}
+                  className={`transition-transform ${diseaseModelStatus === 'loading' || gateModelStatus === 'loading' ? 'animate-spin' : 'group-hover:rotate-180'}`}
+                />
+                <span>Force Update</span>
+              </button>
+            </div>
+          </div>
+        </section>
+
         {/* Data Section */}
         <section className="flex flex-col gap-3" aria-labelledby="data-heading">
           <h2
@@ -152,6 +282,44 @@ export default function SettingsPage() {
             </div>
           </div>
         </section>
+
+        {/* Install Section (Only shown if installable) */}
+        {isInstallAvailable && (
+          <section className="flex flex-col gap-3" aria-labelledby="install-heading">
+            <h2
+              className="pl-4 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground"
+              id="install-heading"
+            >
+              App
+            </h2>
+
+            <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-sm transition-colors duration-300">
+              <div className="flex flex-col gap-5 p-6 md:flex-row md:items-center md:justify-between md:px-8">
+                <div className="flex-1 min-w-0">
+                  <p className="mb-1 text-base font-semibold tracking-wide text-card-foreground">
+                    Install Mina
+                  </p>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    Add to your home screen for fast, offline access.
+                  </p>
+                </div>
+
+                <button
+                  onClick={promptInstall}
+                  className="group flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-foreground px-6 text-sm font-medium tracking-wide text-background shadow-xl transition-transform active:scale-95 md:w-auto"
+                  aria-label="Install App"
+                >
+                  <Download
+                    size={18}
+                    className="transition-transform group-hover:translate-y-0.5"
+                    aria-hidden="true"
+                  />
+                  <span>Install</span>
+                </button>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* About Section */}
         <section className="flex flex-col gap-3" aria-labelledby="about-heading">
